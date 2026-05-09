@@ -297,7 +297,7 @@
         async function loadDepartments() {
             const deptSelect = document.getElementById('department');
             try {
-                const response = await fetch('http://localhost:8080/api/common/departments');
+               const response = await fetch('https://service-request-workflow-system-1.onrender.com/api/common/departments');
                 if (response.ok) {
                     const depts = await response.json();
                     depts.forEach(d => {
