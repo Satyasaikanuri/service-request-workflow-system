@@ -35,7 +35,9 @@ public class SecurityConfig {
 
     @Bean
     public DaoAuthenticationProvider authenticationProvider() {
-        DaoAuthenticationProvider authProvider = new DaoAuthenticationProvider();
+
+        DaoAuthenticationProvider authProvider =
+                new DaoAuthenticationProvider();
 
         authProvider.setUserDetailsService(userDetailsService);
         authProvider.setPasswordEncoder(passwordEncoder());
@@ -44,8 +46,9 @@ public class SecurityConfig {
     }
 
     @Bean
-    public AuthenticationManager authenticationManager(AuthenticationConfiguration authConfig)
-            throws Exception {
+    public AuthenticationManager authenticationManager(
+            AuthenticationConfiguration authConfig) throws Exception {
+
         return authConfig.getAuthenticationManager();
     }
 
@@ -55,7 +58,8 @@ public class SecurityConfig {
     }
 
     @Bean
-    public SecurityFilterChain filterChain(HttpSecurity http) throws Exception {
+    public SecurityFilterChain filterChain(HttpSecurity http)
+            throws Exception {
 
         http.csrf(csrf -> csrf.disable())
 
@@ -67,32 +71,50 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                      
-                        .requestMatchers("/", "/index.html").permitAll()
+                        // Frontend Pages
+                        .requestMatchers(
+                                "/",
+                                "/index.html",
+                                "/login.html",
+                                "/register.html",
+                                "/css/**",
+                                "/js/**",
+                                "/images/**"
+                        ).permitAll()
 
-                       
+                        // Auth APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
-                        
+                        // Public APIs
                         .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/common/**").permitAll()
 
-                    
-                        .requestMatchers("/swagger-ui/**", "/v3/api-docs/**").permitAll()
+                        // Swagger
+                        .requestMatchers(
+                                "/swagger-ui/**",
+                                "/v3/api-docs/**"
+                        ).permitAll()
 
-                       
-                        .requestMatchers(org.springframework.http.HttpMethod.OPTIONS, "/**").permitAll()
+                        // OPTIONS requests
+                        .requestMatchers(
+                                org.springframework.http.HttpMethod.OPTIONS,
+                                "/**"
+                        ).permitAll()
 
-                        
-                        .anyRequest().authenticated());
+                        // All remaining requests need authentication
+                        .anyRequest().authenticated()
+                );
 
         http.authenticationProvider(authenticationProvider());
 
-        http.addFilterBefore(authenticationJwtTokenFilter(),
-                UsernamePasswordAuthenticationFilter.class);
+        http.addFilterBefore(
+                authenticationJwtTokenFilter(),
+                UsernamePasswordAuthenticationFilter.class
+        );
 
-       
-        http.cors(cors -> cors.configurationSource(corsConfigurationSource()));
+        // Enable CORS
+        http.cors(cors ->
+                cors.configurationSource(corsConfigurationSource()));
 
         return http.build();
     }
@@ -103,7 +125,9 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOrigins(List.of("*"));
-        configuration.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS"));
+        configuration.setAllowedMethods(
+                List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
+        );
         configuration.setAllowedHeaders(List.of("*"));
 
         UrlBasedCorsConfigurationSource source =
