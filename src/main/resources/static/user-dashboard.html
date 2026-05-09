@@ -1,0 +1,528 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>My Requests - Service Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        /* User Dashboard Specific Styles (Dark Theme) */
+        :root {
+            --bg-user: #0f172a;
+            --nav-user: rgba(15, 23, 42, 0.95);
+            --text-user: #f8fafc;
+            --card-bg: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --text-muted: #94a3b8;
+        }
+
+        body.user-theme {
+            background: var(--bg-user);
+            color: var(--text-user);
+        }
+
+        .top-navbar {
+            background: var(--nav-user);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .dashboard-grid {
+            display: grid;
+            grid-template-columns: 1fr 350px;
+            gap: 2rem;
+            padding: 2rem;
+            max-width: 1600px;
+            margin: 0 auto;
+        }
+
+        @media (max-width: 1200px) {
+            .dashboard-grid {
+                grid-template-columns: 1fr;
+            }
+        }
+
+        .kpi-row {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card-user {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            transition: transform 0.2s;
+        }
+
+        .kpi-card-user:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1);
+            background: rgba(30, 41, 59, 0.8);
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: var(--text-user);
+            margin-bottom: 0.5rem;
+        }
+
+        .kpi-label {
+            font-size: 0.875rem;
+            color: var(--text-muted);
+            font-weight: 500;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+        }
+
+        /* Timeline Styles */
+        .timeline-container {
+            background: var(--card-bg);
+            padding: 1.5rem;
+            border-radius: 0.75rem;
+            border: 1px solid var(--border-color);
+        }
+
+        .timeline-item {
+            position: relative;
+            padding-left: 2rem;
+            margin-bottom: 1.5rem;
+            border-left: 2px solid #334155;
+        }
+
+        .timeline-item:last-child {
+            margin-bottom: 0;
+            border-left: 2px solid transparent;
+        }
+
+        .timeline-dot {
+            position: absolute;
+            left: -9px;
+            top: 0;
+            width: 16px;
+            height: 16px;
+            border-radius: 50%;
+            background: #475569;
+            border: 2px solid #1e293b;
+        }
+
+        .timeline-item.active .timeline-dot {
+            background: #10b981;
+            box-shadow: 0 0 0 4px rgba(16, 185, 129, 0.2);
+        }
+
+        /* Table enhancements */
+        .user-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            font-size: 0.75rem;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            color: var(--text-muted);
+            background: #0f172a;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .user-table td {
+            border-bottom: 1px solid var(--border-color);
+            font-size: 0.9rem;
+            color: #e2e8f0;
+            background: rgba(30, 41, 59, 0.4);
+        }
+
+        .user-table tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        .sla-countdown {
+            font-family: 'Courier New', monospace;
+            font-weight: 600;
+            padding: 2px 6px;
+            border-radius: 4px;
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Common Card Override */
+        .card {
+            background: var(--card-bg) !important;
+            border: 1px solid var(--border-color) !important;
+            color: var(--text-user) !important;
+        }
+
+        h3,
+        h4 {
+            color: var(--text-user) !important;
+        }
+    </style>
+</head>
+
+<body class="user-theme">
+
+    <style>
+        /* ... Existing Styles ... */
+
+        /* Sidebar Layout Styles */
+        .layout-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .sidebar {
+            width: 280px;
+            background: #0f172a;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+            position: fixed;
+            height: 100vh;
+            z-index: 100;
+        }
+
+        .sidebar-brand {
+            padding: 2rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .sidebar-title {
+            color: #f8fafc;
+            font-size: 1.1rem;
+            font-weight: 700;
+            line-height: 1.4;
+        }
+
+        .nav-items {
+            padding: 1.5rem 1rem;
+            flex: 1;
+        }
+
+        .nav-item {
+            display: flex;
+            align-items: center;
+            padding: 0.75rem 1rem;
+            color: #94a3b8;
+            border-radius: 0.5rem;
+            margin-bottom: 0.5rem;
+            cursor: pointer;
+            transition: all 0.2s;
+            text-decoration: none;
+        }
+
+        .nav-item:hover,
+        .nav-item.active {
+            background: rgba(255, 255, 255, 0.05);
+            color: #f8fafc;
+        }
+
+        .nav-item i {
+            width: 24px;
+            margin-right: 0.75rem;
+        }
+
+        .main-panel {
+            flex: 1;
+            margin-left: 280px;
+            background: var(--bg-user);
+            min-height: 100vh;
+        }
+
+        /* Adjust sticky header to account for layout */
+        .top-navbar {
+            /* width: calc(100% - 280px); No, standard flex handling is usually better or standard sticky */
+            /* stick with default width auto inside flex item */
+        }
+    </style>
+    </head>
+
+    <body class="user-theme">
+
+        <div class="layout-wrapper">
+            <!-- SIDEBAR -->
+            <aside class="sidebar">
+                <div class="sidebar-brand">
+                    <div
+                        style="font-size: 0.75rem; text-transform: uppercase; color: #64748b; letter-spacing: 0.05em; margin-bottom: 0.5rem;">
+                        Project</div>
+                    <div class="sidebar-title">Service Portal<br>Workflow Automation</div>
+                </div>
+
+                <nav class="nav-items">
+                    <a href="#" class="nav-item active" id="nav-dashboard"
+                        onclick="UserDashboard.switchView('dashboard')">
+                        <i class="fas fa-th-large"></i> Dashboard
+                    </a>
+                    <a href="#" class="nav-item" id="nav-myrequests" onclick="UserDashboard.switchView('myrequests')">
+                        <i class="fas fa-list"></i> My Requests
+                    </a>
+                    <a href="#" class="nav-item" id="nav-pending" onclick="UserDashboard.switchView('pending')">
+                        <i class="fas fa-clock"></i> Pending
+                    </a>
+                    <a href="#" class="nav-item" id="nav-approved" onclick="UserDashboard.switchView('approved')">
+                        <i class="fas fa-check-circle"></i> Approved
+                    </a>
+                    <a href="#" class="nav-item" id="nav-rejected" onclick="UserDashboard.switchView('rejected')">
+                        <i class="fas fa-times-circle"></i> Rejected
+                    </a>
+                    <a href="#" class="nav-item" id="nav-reports" onclick="UserDashboard.switchView('reports')">
+                        <i class="fas fa-chart-pie"></i> Reports
+                    </a>
+                </nav>
+
+                <div style="padding: 1.5rem; border-top: 1px solid rgba(255,255,255,0.05);">
+                    <div style="color: #64748b; font-size: 0.8rem;">Logged in as User</div>
+                </div>
+            </aside>
+
+            <!-- MAIN CONTENT -->
+            <div class="main-panel">
+                <nav class="top-navbar">
+                    <!-- existing navbar content -->
+                    <div style="display: flex; align-items: center; gap: 1rem;">
+                        <i class="fas fa-layer-group fa-lg" style="color: #3b82f6;"></i>
+                        <span style="font-weight: 700; font-size: 1.25rem;">My Requests <span
+                                style="font-weight: 400; color: #64748b; font-size: 1rem;">Dashboard</span></span>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 1.5rem;">
+                        <button onclick="UserDashboard.loadData(true)" class="btn"
+                            style="background: transparent; color: #64748b; width: auto; padding: 0.5rem; border: 1px solid #e2e8f0;">
+                            <i class="fas fa-sync-alt" id="refresh-icon"></i>
+                            <span style="font-size: 0.85rem; margin-left: 5px;">Live</span>
+                        </button>
+
+                        <div style="position: relative; cursor: pointer;"
+                            onclick="document.getElementById('notif-panel').classList.toggle('hidden')">
+                            <i class="fas fa-bell" style="color: #64748b; font-size: 1.2rem;"></i>
+                            <span id="notif-count"
+                                style="position: absolute; top: -5px; right: -5px; background: #ef4444; color: white; font-size: 0.7rem; padding: 2px 5px; border-radius: 10px; display: none;">0</span>
+
+                            <!-- Notification Dropdown -->
+                            <div id="notif-panel" class="hidden"
+                                style="position: absolute; top: 40px; right: 0; width: 300px; background: white; border: 1px solid #e2e8f0; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); border-radius: 0.5rem; z-index: 100;">
+                                <div style="padding: 1rem; border-bottom: 1px solid #f1f5f9; font-weight: 600;">
+                                    Notifications</div>
+                                <div id="notif-list" style="max-height: 300px; overflow-y: auto;">
+                                    <div style="padding: 1rem; color: #94a3b8; font-size: 0.85rem;">No new notifications
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        <div style="display: flex; align-items: center; gap: 0.75rem;">
+                            <div style="text-align: right;">
+                                <div id="user-name" style="font-weight: 600; font-size: 0.9rem;">User</div>
+                            </div>
+                            <div class="avatar" style="width: 36px; height: 36px; background: #3b82f6; color: white;">U
+                            </div>
+                            <a href="#" onclick="Auth.logout()" style="color: #64748b; margin-left: 0.5rem;"><i
+                                    class="fas fa-sign-out-alt"></i></a>
+                        </div>
+                    </div>
+                </nav>
+
+                <div class="dashboard-grid">
+                    <!-- Wrap the varying content in views if needed, or just control visibility via JS -->
+                    <!-- For now, keeping dashboard-grid as is, but we might need to hide/show parts if "Reports" is clicked -->
+
+                    <!-- Content Container (View: Dashboard/List) -->
+                    <div id="content-area"
+                        style="grid-column: 1 / -1; display: grid; grid-template-columns: 1fr 350px; gap: 2rem;">
+                        <!-- Main Content Left (KPIs + Table) -->
+                        <div id="view-dashboard-main">
+                            <!-- KPIs -->
+                            <div class="kpi-row">
+                                <div class="kpi-card-user">
+                                    <div class="kpi-label">Total Requests</div>
+                                    <div class="kpi-value" id="kpi-total">0</div>
+                                    <div style="font-size: 0.75rem; color: #3b82f6;">All time</div>
+                                </div>
+                                <div class="kpi-card-user">
+                                    <div class="kpi-label">Pending</div>
+                                    <div class="kpi-value" id="kpi-pending" style="color: #f59e0b;">0</div>
+                                    <div style="font-size: 0.75rem; color: #f59e0b;">Action Required</div>
+                                </div>
+                                <div class="kpi-card-user">
+                                    <div class="kpi-label">Approved</div>
+                                    <div class="kpi-value" id="kpi-approved" style="color: #10b981;">0</div>
+                                    <div style="font-size: 0.75rem; color: #10b981;">Completed</div>
+                                </div>
+                                <div class="kpi-card-user">
+                                    <div class="kpi-label">Rejected</div>
+                                    <div class="kpi-value" id="kpi-rejected" style="color: #ef4444;">0</div>
+                                </div>
+                            </div>
+
+                            <!-- Analytics Section -->
+                            <div class="card"
+                                style="padding: 1.5rem; margin-bottom: 2rem; border: 1px solid #e2e8f0; border-radius: 0.75rem; background: white;">
+                                <h3 style="font-weight: 700; color: #1e293b; margin-bottom: 1rem;">Request Trends (Last
+                                    7 Days)</h3>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="trendChart"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- New Request Button -->
+                            <div
+                                style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 1.5rem;">
+                                <h3 id="table-title" style="font-weight: 700; color: #1e293b;">My Requests</h3>
+                                <a href="create-request.html" class="btn btn-primary"
+                                    style="width: auto; background: #3b82f6; box-shadow: 0 4px 6px -1px rgba(59, 130, 246, 0.5);">
+                                    <i class="fas fa-plus"></i> New Request
+                                </a>
+                            </div>
+
+                            <!-- Table -->
+                            <div class="card"
+                                style="padding: 0; overflow: hidden; background: white; border: 1px solid #e2e8f0; box-shadow: none;">
+                                <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                                    <table class="user-table" style="width: 100%; border-collapse: collapse;">
+                                        <thead>
+                                            <tr>
+                                                <th style="padding: 1rem;">ID</th>
+                                                <th style="padding: 1rem; text-align: left;">Title</th>
+                                                <th style="padding: 1rem; text-align: left;">Dept</th>
+                                                <th style="padding: 1rem; text-align: left;">Priority</th>
+                                                <th style="padding: 1rem; text-align: left;">Status</th>
+                                                <th style="padding: 1rem; text-align: left;">SLA Remaining</th>
+                                                <th style="padding: 1rem; text-align: left;">Updated</th>
+                                            </tr>
+                                        </thead>
+                                        <tbody id="requests-list">
+                                            <tr>
+                                                <td colspan="7"
+                                                    style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                                    Loading...
+                                                </td>
+                                            </tr>
+                                        </tbody>
+                                    </table>
+                                </div>
+                            </div>
+                        </div>
+
+                        <!-- Sidebar (Timeline & Activity) -->
+                        <aside id="dashboard-right-sidebar">
+                            <div class="timeline-container" style="position: sticky; top: 80px;">
+                                <h4 style="font-weight: 700; margin-bottom: 1.5rem; color: #1e293b;">Recent Live
+                                    Activity</h4>
+                                <div id="live-timeline">
+                                    <div style="text-align: center; color: #94a3b8; font-size: 0.9rem;">
+                                        <i class="fas fa-spinner fa-spin"></i> Syncing...
+                                    </div>
+                                </div>
+
+                                <div style="margin-top: 2rem; padding-top: 1rem; border-top: 1px solid #f1f5f9;">
+                                    <canvas id="statusChart" height="200"></canvas>
+                                </div>
+                            </div>
+                        </aside>
+                    </div>
+
+                    <!-- Reports View -->
+                    <div id="view-reports" style="display: none; grid-column: 1 / -1;">
+                        <h3 class="section-title">Performance Reports</h3>
+                        <div
+                            style="display: grid; grid-template-columns: repeat(auto-fit, minmax(300px, 1fr)); gap: 1.5rem;">
+
+                            <!-- Status Breakdown -->
+                            <div class="card">
+                                <h4
+                                    style="margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">
+                                    Request Status</h4>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="chart-user-status"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Priority Breakdown -->
+                            <div class="card">
+                                <h4
+                                    style="margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">
+                                    Requests by Priority</h4>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="chart-user-priority"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- SLA Compliance -->
+                            <div class="card">
+                                <h4
+                                    style="margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">
+                                    SLA Compliance</h4>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="chart-user-sla"></canvas>
+                                </div>
+                            </div>
+
+                            <!-- Daily Volume -->
+                            <div class="card">
+                                <h4
+                                    style="margin-bottom: 1rem; font-size: 0.9rem; text-transform: uppercase; letter-spacing: 0.05em; color: #94a3b8;">
+                                    Daily Volume (Last 7 Days)</h4>
+                                <div style="height: 250px; position: relative;">
+                                    <canvas id="chart-user-volume"></canvas>
+                                </div>
+                            </div>
+
+                        </div>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+        </div>
+
+        <!-- Details/Timeline Modal -->
+        <div id="timeline-modal" class="modal">
+            <div class="modal-content" style="background: white; color: #0f172a; width: 600px;">
+                <h3 style="margin-bottom: 1rem; font-weight: 700;" id="modal-title">Request History</h3>
+                <div id="modal-timeline-content" class="timeline-container" style="border: none; padding: 0;">
+                    <!-- JS Populated -->
+                </div>
+                <button onclick="document.getElementById('timeline-modal').classList.remove('show')" class="btn"
+                    style="margin-top: 1rem; background: #e2e8f0; color: #475569;">Close</button>
+            </div>
+        </div>
+
+
+        <script src="js/common.js"></script>
+        <script src="js/user-dashboard.js"></script>
+    </body>
+
+</html>

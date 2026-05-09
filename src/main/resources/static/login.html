@@ -1,0 +1,325 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Service Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        /* Specific overrides for the split login layout */
+        body {
+            background: #fff;
+            /* Reset body background for this page */
+            color: #1e293b;
+            display: block;
+            min-height: 100vh;
+        }
+
+        .login-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Left Side - Branding */
+        .brand-section {
+            flex: 1;
+            background-color: #0f172a;
+            color: white;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Abstract Diagram Circles */
+        .diagram-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 2rem;
+        }
+
+        .node {
+            width: 60px;
+            height: 40px;
+            border: 2px solid;
+            border-radius: 8px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Branding Text */
+        .brand-section h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+        }
+
+        .brand-section p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+
+        .feature-list i {
+            margin-right: 10px;
+            color: #38bdf8;
+        }
+
+        /* Right Side - Form */
+        .form-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 2rem;
+            background: #f8fafc;
+        }
+
+        .login-card-custom {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 2rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        /* Overriding dark mode inputs for this white card */
+        .custom-input {
+            background: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #334155 !important;
+        }
+
+        .custom-input:focus {
+            background: white !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+        }
+
+        .custom-label {
+            color: #475569 !important;
+        }
+
+        .form-options {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1.5rem;
+            font-size: 0.875rem;
+        }
+
+        .forgot-link {
+            color: #6366f1;
+            font-weight: 600;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .login-wrapper {
+                flex-direction: column;
+            }
+
+            .brand-section {
+                padding: 3rem 2rem;
+                min-height: 300px;
+                flex: 0 0 auto;
+            }
+
+            .brand-section h1 {
+                font-size: 2.5rem;
+            }
+
+            .diagram-container {
+                display: none;
+            }
+
+            .form-section {
+                padding: 2rem 1rem;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+        <!-- Left Side -->
+        <div class="brand-section">
+            <div style="color: #38bdf8; font-weight: 700; margin-bottom: 1rem; letter-spacing: 1px;">Service Request
+                Workflow Portal</div>
+
+            <!-- Abstract Diagram mimicking the image -->
+            <div class="diagram-container">
+                <!-- Pink Node -->
+                <div class="node"
+                    style="top: 20px; left: 0; border-color: #ec4899; box-shadow: 0 0 15px rgba(236, 72, 153, 0.3);">
+                    <div class="node-dot" style="background: #ec4899;"></div>
+                </div>
+                <!-- Blue Node -->
+                <div class="node"
+                    style="top: 0; left: 100px; border-color: #38bdf8; box-shadow: 0 0 15px rgba(56, 189, 248, 0.3);">
+                    <div class="node-dot" style="background: #38bdf8;"></div>
+                </div>
+                <!-- Green Node -->
+                <div class="node"
+                    style="top: 80px; left: 100px; border-color: #10b981; box-shadow: 0 0 15px rgba(16, 185, 129, 0.3);">
+                    <div class="node-dot" style="background: #10b981;"></div>
+                </div>
+                <!-- Lines (CSS borders/pseudo elements would be complex, simplified for now) -->
+                <div
+                    style="position: absolute; top: 40px; left: 70px; width: 30px; height: 2px; border-top: 2px dashed #94a3b8;">
+                </div>
+                <div
+                    style="position: absolute; top: 45px; left: 130px; width: 2px; height: 35px; border-left: 2px dashed #94a3b8;">
+                </div>
+            </div>
+
+            <h1>Service Request<br>Workflow<br>Automation</h1>
+            <p>Simplifying service requests with secure approvals and real-time tracking.</p>
+
+            <ul class="feature-list">
+                <li><i class="fas fa-check"></i> Raise service requests easily</li>
+                <li><i class="fas fa-check"></i> Track approval status in real time</li>
+                <li><i class="fas fa-check"></i> Secure role-based dashboards</li>
+            </ul>
+        </div>
+
+        <!-- Right Side -->
+        <div class="form-section">
+            <div class="login-card-custom">
+                <div class="login-header">
+                    <h2>Welcome Back</h2>
+                    <p>Please enter your details to sign in.</p>
+                </div>
+
+                <form id="loginForm">
+                    <div id="error-msg" class="error-msg hidden" style="margin-bottom: 1rem; text-align: center;"></div>
+
+                    <div class="form-group">
+                        <label class="form-label custom-label">Email Address</label>
+                        <input type="email" class="form-control custom-input" id="email" placeholder="Enter your email"
+                            required>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label custom-label">Password</label>
+                        <input type="password" class="form-control custom-input" id="password" placeholder="••••••••"
+                            required>
+                    </div>
+
+                    <div class="form-options">
+                        <label
+                            style="display: flex; align-items: center; gap: 0.5rem; color: #64748b; cursor: pointer;">
+                            <input type="checkbox" style="accent-color: #6366f1;"> Remember me
+                        </label>
+                        <a href="admin-login.html" class="forgot-link" style="color: #64748b;">Admin Access?</a>
+                    </div>
+
+                    <button type="submit" class="btn btn-primary" style="background: #6366f1;">Sign In</button>
+
+                    <div style="text-align: center; margin-top: 1.5rem; color: #64748b; font-size: 0.9rem;">
+                        Don't have an account? <a href="register.html" class="forgot-link">Sign up</a>
+                        <br><br>
+                        <a href="admin-login.html" class="forgot-link" style="color: #64748b; font-size: 0.85rem;"><i
+                                class="fas fa-user-shield"></i> Go to Admin Login</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        // Include the original Login Logic
+        document.getElementById('loginForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const errorDiv = document.getElementById('error-msg');
+
+            const loginBtn = e.target.querySelector('button');
+            const originalBtnText = loginBtn.innerText;
+            loginBtn.innerText = 'Signing In...';
+            loginBtn.disabled = true;
+
+            try {
+                const response = await fetch(`${API_BASE_URL}/auth/signin`, {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({ email, password })
+                });
+
+                if (response.ok) {
+                    const data = await response.json();
+                    Auth.saveToken(data.token, data);
+
+                    // Redirect based on Role
+                    if (data.roles.includes('ROLE_ADMIN')) {
+                        window.location.href = 'admin-dashboard.html';
+                    } else if (data.roles.includes('ROLE_APPROVER')) {
+                        window.location.href = 'approver-dashboard.html';
+                    } else if (data.roles.includes('ROLE_MANAGER')) {
+                        window.location.href = 'manager-dashboard.html';
+                    } else {
+                        window.location.href = 'user-dashboard.html';
+                    }
+                } else {
+                    const err = await response.json(); // Try to parse backend error
+                    throw new Error(err.message || 'Invalid credentials');
+                }
+            } catch (error) {
+                errorDiv.innerText = error.message;
+                errorDiv.classList.remove('hidden');
+                loginBtn.innerText = originalBtnText;
+                loginBtn.disabled = false;
+            }
+        });
+    </script>
+</body>
+
+</html>

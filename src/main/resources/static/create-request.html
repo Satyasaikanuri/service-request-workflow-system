@@ -1,0 +1,328 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Request - Service Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        :root {
+            --bg-user: #0f172a;
+            --nav-user: rgba(15, 23, 42, 0.95);
+            --text-user: #f8fafc;
+            --card-bg: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+        }
+
+        body.user-theme {
+            background: var(--bg-user);
+            color: var(--text-user);
+        }
+
+        .top-navbar {
+            background: var(--nav-user);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        /* Form Card Styles */
+        .form-card {
+            background: var(--card-bg);
+            border: 1px solid var(--border-color);
+            border-radius: 0.75rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            max-width: 800px;
+            margin: 2rem auto;
+            overflow: hidden;
+        }
+
+        .form-header {
+            background: rgba(15, 23, 42, 0.5);
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            font-weight: 500;
+            color: var(--text-muted);
+            font-size: 0.9rem;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.75rem;
+            border: 1px solid var(--input-border);
+            border-radius: 0.375rem;
+            font-size: 0.95rem;
+            color: white;
+            background: var(--input-bg);
+            transition: all 0.2s;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+            box-shadow: 0 0 0 2px rgba(59, 130, 246, 0.2);
+        }
+
+        /* SLA Preview Badge */
+        .sla-preview {
+            display: inline-flex;
+            align-items: center;
+            gap: 0.5rem;
+            padding: 0.5rem 1rem;
+            border-radius: 0.5rem;
+            background: #f1f5f9;
+            font-size: 0.85rem;
+            font-weight: 600;
+            color: #64748b;
+            margin-top: 0.5rem;
+            transition: all 0.3s;
+        }
+
+        .sla-preview.active {
+            background: #dcfce7;
+            color: #166534;
+            border: 1px solid #86efac;
+        }
+
+        .field-hint {
+            font-size: 0.8rem;
+            color: #94a3b8;
+            margin-top: 0.25rem;
+        }
+    </style>
+</head>
+
+<body class="user-theme">
+
+    <nav class="top-navbar">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <a href="user-dashboard.html" style="text-decoration: none; display: flex; align-items: center; gap: 1rem;">
+                <i class="fas fa-arrow-left" style="color: var(--text-muted);"></i>
+                <span style="font-weight: 700; font-size: 1.25rem; color: white;">New Request</span>
+            </a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <div id="user-name" style="font-weight: 600; font-size: 0.9rem;">User</div>
+            <div class="avatar"
+                style="width: 36px; height: 36px; background: #3b82f6; color: white; display:flex; align-items:center; justify-content:center; border-radius:50%;">
+                U</div>
+        </div>
+    </nav>
+
+    <main style="padding: 2rem;">
+
+        <div class="form-card">
+            <div class="form-header">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: white; margin: 0;">Request Details</h2>
+                <p style="margin: 0.5rem 0 0 0; color: var(--text-muted); font-size: 0.9rem;">Please provide all
+                    necessary
+                    information for approval.</p>
+            </div>
+
+            <div class="form-body">
+                <div id="restriction-overlay" class="hidden" style="text-align: center; padding: 4rem 2rem;">
+                    <i class="fas fa-laptop-slash" style="font-size: 4rem; color: #ef4444; margin-bottom: 2rem;"></i>
+                    <h2 style="color: white; margin-bottom: 1rem;">Hardware Required</h2>
+                    <p style="color: var(--text-muted); line-height: 1.6;">You must have an assigned laptop before you
+                        can create service requests. Please contact your manager to complete your hardware assignment.
+                    </p>
+                    <a href="user-dashboard.html" class="btn btn-primary"
+                        style="margin-top: 2rem; display: inline-block; width: auto; background: #334155; border: none;">Return
+                        to Dashboard</a>
+                </div>
+                <form id="createRequestForm">
+                    <div class="form-group">
+                        <label class="form-label">Request Title</label>
+                        <input type="text" class="form-control" id="req-title"
+                            placeholder="e.g. New Laptop for Marketing Intern" required>
+                    </div>
+
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1.5rem;">
+                        <div class="form-group">
+                            <label class="form-label">Department</label>
+                            <select class="form-control" id="req-dept" required>
+                                <option value="">Select Department</option>
+                            </select>
+                            <div class="field-hint">The department responsible for fulfilling this request.</div>
+                        </div>
+                        <div class="form-group">
+                            <label class="form-label">Request Type</label>
+                            <select class="form-control" id="req-type" required>
+                                <option value="">Select Type</option>
+                            </select>
+                            <div class="field-hint">Category of the service needed.</div>
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Priority</label>
+                        <select class="form-control" id="req-priority" onchange="updateSLAPreview()" required>
+                            <option value="LOW">Low</option>
+                            <option value="MEDIUM">Medium</option>
+                            <option value="HIGH">High</option>
+                            <option value="CRITICAL">Critical</option>
+                        </select>
+                        <div id="sla-display" class="sla-preview">
+                            <i class="fas fa-clock"></i> Estimated SLA: 72 Hours
+                        </div>
+                    </div>
+
+                    <div class="form-group">
+                        <label class="form-label">Description / Business Justification</label>
+                        <textarea class="form-control" id="req-desc" rows="6"
+                            placeholder="Describe why this request is needed..." required></textarea>
+                    </div>
+
+                    <div
+                        style="display: flex; gap: 1rem; margin-top: 2rem; padding-top: 2rem; border-top: 1px solid var(--border-color);">
+                        <button type="submit" class="btn btn-primary"
+                            style="background: #3b82f6; border:none; padding: 0.75rem 2rem; font-weight: 600;">
+                            <i class="fas fa-paper-plane" style="margin-right: 8px;"></i> Submit Request
+                        </button>
+                        <a href="user-dashboard.html" class="btn"
+                            style="background: transparent; border: 1px solid #475569; color: #cbd5e1; padding: 0.75rem 2rem; font-weight: 600; text-decoration: none; display: inline-flex; align-items: center;">
+                            Cancel
+                        </a>
+                    </div>
+                </form>
+            </div>
+        </div>
+
+    </main>
+
+    <script src="js/common.js"></script>
+    <script>
+        Auth.checkAuth();
+        const user = Auth.getUser();
+        if (user) {
+            document.getElementById('user-name').innerText = user.username;
+            const avatar = document.querySelector('.avatar');
+            if (avatar) avatar.innerText = user.username.charAt(0).toUpperCase();
+        }
+
+        async function checkHardware() {
+            try {
+                const data = await API.get('/requests/check-hardware');
+                if (!data.hasHardware) {
+                    document.getElementById('createRequestForm').classList.add('hidden');
+                    document.getElementById('restriction-overlay').classList.remove('hidden');
+                    return false;
+                }
+                return true;
+            } catch (e) {
+                console.error("Error checking hardware", e);
+                return true; // Fallback to let API handle it if check fails
+            }
+        }
+
+        async function loadFormData() {
+            const hasHardware = await checkHardware();
+            if (!hasHardware) return;
+
+            try {
+                // Parallel fetch for speed
+                const [depts, types] = await Promise.all([
+                    (await fetch('http://localhost:8080/api/common/departments')).json(),
+                    (await fetch('http://localhost:8080/api/common/request-types')).json()
+                ]);
+
+                const deptSelect = document.getElementById('req-dept');
+                depts.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id; opt.innerText = d.name; deptSelect.appendChild(opt);
+                });
+
+                const typeSelect = document.getElementById('req-type');
+                types.forEach(d => {
+                    const opt = document.createElement('option');
+                    opt.value = d.id; opt.innerText = d.name; typeSelect.appendChild(opt);
+                });
+            } catch (e) { console.error("Error loading dropdowns", e); }
+        }
+
+        function updateSLAPreview() {
+            const priority = document.getElementById('req-priority').value;
+            const display = document.getElementById('sla-display');
+            let hours = 72;
+            let themeClass = '';
+
+            switch (priority) {
+                case 'LOW': hours = 72; break;
+                case 'MEDIUM': hours = 48; break;
+                case 'HIGH': hours = 24; break;
+                case 'CRITICAL': hours = 4; break;
+            }
+
+            display.innerHTML = `<i class="fas fa-clock"></i> Estimated SLA: <strong style="margin-left:5px;">${hours} Hours</strong>`;
+
+            if (priority === 'CRITICAL' || priority === 'HIGH') {
+                display.classList.add('active');
+                display.style.background = 'rgba(127, 29, 29, 0.2)';
+                display.style.color = '#f87171';
+                display.style.border = '1px solid #7f1d1d';
+            } else {
+                display.classList.remove('active');
+                display.style.background = '#0f172a';
+                display.style.color = '#94a3b8';
+                display.style.border = '1px solid #334155';
+            }
+        }
+
+        document.getElementById('createRequestForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const btn = e.target.querySelector('button[type="submit"]');
+            const originalText = btn.innerHTML;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Processing...';
+            btn.disabled = true;
+
+            const payload = {
+                title: document.getElementById('req-title').value,
+                description: document.getElementById('req-desc').value,
+                departmentId: document.getElementById('req-dept').value,
+                requestTypeId: document.getElementById('req-type').value,
+                priority: document.getElementById('req-priority').value
+            };
+
+            try {
+                await API.post('/requests', payload);
+                window.location.href = 'user-dashboard.html';
+            } catch (error) {
+                alert('Failed: ' + error.message);
+                btn.innerHTML = originalText;
+                btn.disabled = false;
+            }
+        });
+
+        loadFormData();
+        updateSLAPreview(); // init
+    </script>
+</body>
+
+</html>
