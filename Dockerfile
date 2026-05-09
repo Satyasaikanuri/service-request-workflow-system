@@ -10,4 +10,4 @@ RUN mvn clean package -DskipTests
 
 EXPOSE 8080
 
-CMD java -jar $(ls target/*.jar | head -n 1)
+CMD sh -c "java -jar $(find target -name '*.jar' | head -n 1)"
