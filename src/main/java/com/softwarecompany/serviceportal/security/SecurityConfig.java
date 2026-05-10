@@ -3,6 +3,7 @@ package com.softwarecompany.serviceportal.security;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
+import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
@@ -26,7 +27,7 @@ public class SecurityConfig {
     UserDetailsServiceImpl userDetailsService;
 
     @Autowired
-    AuthEntryPointJwt unauthorizedHandler;
+    private AuthEntryPointJwt unauthorizedHandler;
 
     @Bean
     public AuthTokenFilter authenticationJwtTokenFilter() {
@@ -61,7 +62,11 @@ public class SecurityConfig {
     public SecurityFilterChain filterChain(HttpSecurity http)
             throws Exception {
 
-        http.csrf(csrf -> csrf.disable())
+        http
+                .csrf(csrf -> csrf.disable())
+
+                .cors(cors ->
+                        cors.configurationSource(corsConfigurationSource()))
 
                 .exceptionHandling(exception ->
                         exception.authenticationEntryPoint(unauthorizedHandler))
@@ -71,23 +76,29 @@ public class SecurityConfig {
 
                 .authorizeHttpRequests(auth -> auth
 
-                        // Frontend Pages
+                        // Frontend files
                         .requestMatchers(
                                 "/",
                                 "/index.html",
                                 "/login.html",
                                 "/register.html",
+                                "/admin-login.html",
+                                "/user-dashboard.html",
+                                "/admin-dashboard.html",
+                                "/manager-dashboard.html",
+                                "/approver-dashboard.html",
                                 "/css/**",
                                 "/js/**",
-                                "/images/**"
+                                "/images/**",
+                                "/static/**"
                         ).permitAll()
 
-                        // Auth APIs
+                        // Authentication APIs
                         .requestMatchers("/api/auth/**").permitAll()
 
                         // Public APIs
-                        .requestMatchers("/api/test/**").permitAll()
                         .requestMatchers("/api/common/**").permitAll()
+                        .requestMatchers("/api/test/**").permitAll()
 
                         // Swagger
                         .requestMatchers(
@@ -95,13 +106,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // OPTIONS requests
-                        .requestMatchers(
-                                org.springframework.http.HttpMethod.OPTIONS,
-                                "/**"
-                        ).permitAll()
+                        // Allow preflight requests
+                        .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // All remaining requests need authentication
+                        // Everything else secured
                         .anyRequest().authenticated()
                 );
 
@@ -112,10 +120,6 @@ public class SecurityConfig {
                 UsernamePasswordAuthenticationFilter.class
         );
 
-        // Enable CORS
-        http.cors(cors ->
-                cors.configurationSource(corsConfigurationSource()));
-
         return http.build();
     }
 
@@ -124,11 +128,12 @@ public class SecurityConfig {
 
         CorsConfiguration configuration = new CorsConfiguration();
 
-        configuration.setAllowedOrigins(List.of("*"));
+        configuration.setAllowedOriginPatterns(List.of("*"));
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
         );
         configuration.setAllowedHeaders(List.of("*"));
+        configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
                 new UrlBasedCorsConfigurationSource();
