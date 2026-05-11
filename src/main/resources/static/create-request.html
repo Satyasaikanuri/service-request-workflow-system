@@ -196,127 +196,167 @@
 
     <script src="js/common.js"></script>
 
-    <script>
+   <script>
 
-        Auth.checkAuth();
+const API_BASE_URL =
+    'https://service-request-workflow-system-1.onrender.com/api';
 
-        const user = Auth.getUser();
+// Check token
+const token = localStorage.getItem("token");
 
-        if (user) {
-            document.getElementById('user-name').innerText =
-                user.username;
+if (!token) {
+    window.location.href = "login.html";
+}
+
+// Load logged user
+const user =
+    JSON.parse(localStorage.getItem("user"));
+
+if (user) {
+    document.getElementById("user-name").innerText =
+        user.username;
+}
+
+// Common headers
+function authHeaders() {
+    return {
+        "Content-Type": "application/json",
+        "Authorization": `Bearer ${token}`
+    };
+}
+
+// Load departments + request types
+async function loadFormData() {
+
+    try {
+
+        const deptResponse = await fetch(
+            `${API_BASE_URL}/common/departments`,
+            {
+                method: "GET",
+                headers: authHeaders()
+            }
+        );
+
+        const typeResponse = await fetch(
+            `${API_BASE_URL}/common/request-types`,
+            {
+                method: "GET",
+                headers: authHeaders()
+            }
+        );
+
+        if (!deptResponse.ok || !typeResponse.ok) {
+            throw new Error("Failed to load form data");
         }
 
-        async function loadFormData() {
+        const depts = await deptResponse.json();
+        const types = await typeResponse.json();
 
-            try {
+        const deptSelect =
+            document.getElementById("req-dept");
 
-                const token =
-                    localStorage.getItem("token");
+        depts.forEach(dept => {
 
-                const [depts, types] =
-                    await Promise.all([
+            const option =
+                document.createElement("option");
 
-                    fetch(
-                        'https://service-request-workflow-system-1.onrender.com/api/common/departments',
-                        {
-                            headers: {
-                                "Authorization":
-                                    `Bearer ${token}`
-                            }
-                        }
-                    ).then(res => res.json()),
+            option.value = dept.id;
+            option.textContent = dept.name;
 
-                    fetch(
-                        'https://service-request-workflow-system-1.onrender.com/api/common/request-types',
-                        {
-                            headers: {
-                                "Authorization":
-                                    `Bearer ${token}`
-                            }
-                        }
-                    ).then(res => res.json())
-
-                ]);
-
-                const deptSelect =
-                    document.getElementById('req-dept');
-
-                depts.forEach(d => {
-
-                    const opt =
-                        document.createElement('option');
-
-                    opt.value = d.id;
-                    opt.innerText = d.name;
-
-                    deptSelect.appendChild(opt);
-                });
-
-                const typeSelect =
-                    document.getElementById('req-type');
-
-                types.forEach(t => {
-
-                    const opt =
-                        document.createElement('option');
-
-                    opt.value = t.id;
-                    opt.innerText = t.name;
-
-                    typeSelect.appendChild(opt);
-                });
-
-            } catch (e) {
-
-                console.error(e);
-
-                alert("Failed to load form data");
-            }
-        }
-
-        document.getElementById('createRequestForm')
-            .addEventListener('submit', async (e) => {
-
-            e.preventDefault();
-
-            const payload = {
-
-                title:
-                    document.getElementById('req-title').value,
-
-                description:
-                    document.getElementById('req-desc').value,
-
-                departmentId:
-                    document.getElementById('req-dept').value,
-
-                requestTypeId:
-                    document.getElementById('req-type').value,
-
-                priority:
-                    document.getElementById('req-priority').value
-            };
-
-            try {
-
-                await API.post('/requests', payload);
-
-                alert("Request Created!");
-
-                window.location.href =
-                    'user-dashboard.html';
-
-            } catch (error) {
-
-                alert(error.message);
-            }
+            deptSelect.appendChild(option);
         });
 
-        loadFormData();
+        const typeSelect =
+            document.getElementById("req-type");
 
-    </script>
+        types.forEach(type => {
 
+            const option =
+                document.createElement("option");
+
+            option.value = type.id;
+            option.textContent = type.name;
+
+            typeSelect.appendChild(option);
+        });
+
+    } catch (error) {
+
+        console.error(error);
+
+        alert("Error loading form data");
+    }
+}
+
+// Submit request
+document
+    .getElementById("createRequestForm")
+    .addEventListener("submit", async function (e) {
+
+        e.preventDefault();
+
+        const payload = {
+
+            title:
+                document.getElementById("req-title").value,
+
+            description:
+                document.getElementById("req-desc").value,
+
+            departmentId:
+                parseInt(
+                    document.getElementById("req-dept").value
+                ),
+
+            requestTypeId:
+                parseInt(
+                    document.getElementById("req-type").value
+                ),
+
+            priority:
+                document.getElementById("req-priority").value
+        };
+
+        try {
+
+            const response = await fetch(
+                `${API_BASE_URL}/requests`,
+                {
+                    method: "POST",
+                    headers: authHeaders(),
+                    body: JSON.stringify(payload)
+                }
+            );
+
+            const data = await response.json();
+
+            if (!response.ok) {
+
+                alert(
+                    data.message || "Failed to create request"
+                );
+
+                return;
+            }
+
+            alert("Request Created Successfully!");
+
+            window.location.href =
+                "user-dashboard.html";
+
+        } catch (error) {
+
+            console.error(error);
+
+            alert("Server Error");
+        }
+    });
+
+// Initialize
+loadFormData();
+
+</script>
 </body>
 
 </html>
