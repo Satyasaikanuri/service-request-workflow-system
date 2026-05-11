@@ -244,10 +244,6 @@
 
 <script>
 
-const API_BASE_URL =
-    'https://service-request-workflow-system-1.onrender.com/api';
-
-// Check token
 const token = localStorage.getItem("token");
 
 if (!token) {
@@ -255,7 +251,6 @@ if (!token) {
     window.location.href = "login.html";
 }
 
-// Load logged user
 const user =
     JSON.parse(localStorage.getItem("user"));
 
@@ -265,7 +260,6 @@ if (user) {
         user.username;
 }
 
-// Common headers
 function authHeaders() {
 
     return {
@@ -275,31 +269,25 @@ function authHeaders() {
     };
 }
 
-// Load departments + request types
 async function loadFormData() {
 
     try {
 
-        // Departments
         const deptResponse = await fetch(
-            `${API_BASE_URL}/departments`,
+            "https://service-request-workflow-system-1.onrender.com/api/departments",
             {
                 method: "GET",
                 headers: authHeaders()
             }
         );
 
-        // Request Types
         const typeResponse = await fetch(
-            `${API_BASE_URL}/request-types`,
+            "https://service-request-workflow-system-1.onrender.com/api/request-types",
             {
                 method: "GET",
                 headers: authHeaders()
             }
         );
-
-        console.log("Department Status:", deptResponse.status);
-        console.log("Type Status:", typeResponse.status);
 
         const depts =
             await deptResponse.json();
@@ -310,7 +298,6 @@ async function loadFormData() {
         console.log("Departments:", depts);
         console.log("Types:", types);
 
-        // Department dropdown
         const deptSelect =
             document.getElementById("req-dept");
 
@@ -328,7 +315,6 @@ async function loadFormData() {
             deptSelect.appendChild(option);
         });
 
-        // Request type dropdown
         const typeSelect =
             document.getElementById("req-type");
 
@@ -354,7 +340,6 @@ async function loadFormData() {
     }
 }
 
-// Submit request
 document
     .getElementById("createRequestForm")
     .addEventListener("submit", async function (e) {
@@ -383,12 +368,10 @@ document
                 document.getElementById("req-priority").value
         };
 
-        console.log(payload);
-
         try {
 
             const response = await fetch(
-                `${API_BASE_URL}/requests`,
+                "https://service-request-workflow-system-1.onrender.com/api/requests",
                 {
                     method: "POST",
                     headers: authHeaders(),
@@ -398,8 +381,6 @@ document
 
             const data =
                 await response.json();
-
-            console.log(data);
 
             if (!response.ok) {
 
@@ -424,7 +405,6 @@ document
         }
     });
 
-// Initialize
 loadFormData();
 
 </script>
