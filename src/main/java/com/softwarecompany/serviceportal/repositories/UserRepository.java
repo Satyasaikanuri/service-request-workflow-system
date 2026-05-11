@@ -1,124 +1,25 @@
-package com.softwarecompany.serviceportal.services;
+package com.softwarecompany.serviceportal.repositories;
 
-import com.softwarecompany.serviceportal.dtos.JwtResponse;
-import com.softwarecompany.serviceportal.dtos.LoginRequest;
-import com.softwarecompany.serviceportal.dtos.MessageResponse;
-import com.softwarecompany.serviceportal.dtos.SignupRequest;
 import com.softwarecompany.serviceportal.models.Role;
 import com.softwarecompany.serviceportal.models.User;
-import com.softwarecompany.serviceportal.repositories.RoleRepository;
-import com.softwarecompany.serviceportal.repositories.UserRepository;
-import com.softwarecompany.serviceportal.security.JwtUtils;
-import com.softwarecompany.serviceportal.security.UserDetailsImpl;
+import org.springframework.data.jpa.repository.JpaRepository;
+import org.springframework.stereotype.Repository;
 
-import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.http.ResponseEntity;
-import org.springframework.security.authentication.AuthenticationManager;
-import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
-import org.springframework.security.core.Authentication;
-import org.springframework.security.core.context.SecurityContextHolder;
-import org.springframework.security.crypto.password.PasswordEncoder;
-import org.springframework.stereotype.Service;
-
-import java.util.HashSet;
 import java.util.List;
-import java.util.Set;
-import java.util.stream.Collectors;
+import java.util.Optional;
 
-@Service
-public class AuthService {
+@Repository
+public interface UserRepository extends JpaRepository<User, Long> {
 
-    @Autowired
-    AuthenticationManager authenticationManager;
+    Optional<User> findByEmail(String email);
 
-    @Autowired
-    UserRepository userRepository;
+    Optional<User> findByUsername(String username);
 
-    @Autowired
-    RoleRepository roleRepository;
+    Boolean existsByEmail(String email);
 
-    @Autowired
-    PasswordEncoder encoder;
+    Boolean existsByUsername(String username);
 
-    @Autowired
-    JwtUtils jwtUtils;
+    long countByRole_Name(Role.RoleName roleName);
 
-    // LOGIN
-    public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
-
-        Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(
-                        loginRequest.getUsername(),
-                        loginRequest.getPassword()
-                )
-        );
-
-        SecurityContextHolder.getContext().setAuthentication(authentication);
-
-        String jwt = jwtUtils.generateJwtToken(authentication);
-
-        UserDetailsImpl userDetails =
-                (UserDetailsImpl) authentication.getPrincipal();
-
-        List<String> roles = userDetails.getAuthorities().stream()
-                .map(item -> item.getAuthority())
-                .collect(Collectors.toList());
-
-        return ResponseEntity.ok(
-                new JwtResponse(
-                        jwt,
-                        userDetails.getId(),
-                        userDetails.getUsername(),
-                        userDetails.getEmail(),
-                        roles
-                )
-        );
-    }
-
-    // REGISTER
-    public ResponseEntity<?> registerUser(SignupRequest signUpRequest) {
-
-        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse(
-                            "Error: Username is already taken!"
-                    ));
-        }
-
-        if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity
-                    .badRequest()
-                    .body(new MessageResponse(
-                            "Error: Email is already in use!"
-                    ));
-        }
-
-        // Create new user
-        User user = new User();
-
-        user.setUsername(signUpRequest.getUsername());
-        user.setEmail(signUpRequest.getEmail());
-        user.setPassword(
-                encoder.encode(signUpRequest.getPassword())
-        );
-
-        Set<Role> roles = new HashSet<>();
-
-        Role userRole = roleRepository
-                .findByName(Role.RoleName.ROLE_USER)
-                .orElseThrow(() ->
-                        new RuntimeException("Error: Role not found.")
-                );
-
-        roles.add(userRole);
-
-        user.setRoles(roles);
-
-        userRepository.save(user);
-
-        return ResponseEntity.ok(
-                new MessageResponse("User registered successfully!")
-        );
-    }
+    List<User> findByDepartmentId(Long departmentId);
 }
