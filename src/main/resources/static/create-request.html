@@ -247,7 +247,6 @@
 const token = localStorage.getItem("token");
 
 if (!token) {
-
     window.location.href = "login.html";
 }
 
@@ -255,48 +254,33 @@ const user =
     JSON.parse(localStorage.getItem("user"));
 
 if (user) {
-
     document.getElementById("user-name").innerText =
         user.username;
 }
 
-function authHeaders() {
-
-    return {
-
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`
-    };
-}
-
-async function loadFormData() {
+async function loadDepartments() {
 
     try {
 
-        const deptResponse = await fetch(
+        const response = await fetch(
             "https://service-request-workflow-system-1.onrender.com/api/departments",
             {
-                method: "GET",
-                headers: authHeaders()
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
             }
         );
 
-        const typeResponse = await fetch(
-            "https://service-request-workflow-system-1.onrender.com/api/request-types",
-            {
-                method: "GET",
-                headers: authHeaders()
-            }
-        );
+        if (!response.ok) {
 
-        const depts =
-            await deptResponse.json();
+            console.error("Department API Error");
 
-        const types =
-            await typeResponse.json();
+            return;
+        }
 
-        console.log("Departments:", depts);
-        console.log("Types:", types);
+        const depts = await response.json();
+
+        console.log(depts);
 
         const deptSelect =
             document.getElementById("req-dept");
@@ -304,16 +288,47 @@ async function loadFormData() {
         deptSelect.innerHTML =
             '<option value="">Select Department</option>';
 
-        depts.forEach(dept => {
+        if (Array.isArray(depts)) {
 
-            const option =
-                document.createElement("option");
+            depts.forEach(dept => {
 
-            option.value = dept.id;
-            option.textContent = dept.name;
+                deptSelect.innerHTML += `
+                    <option value="${dept.id}">
+                        ${dept.name}
+                    </option>
+                `;
+            });
+        }
 
-            deptSelect.appendChild(option);
-        });
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+async function loadRequestTypes() {
+
+    try {
+
+        const response = await fetch(
+            "https://service-request-workflow-system-1.onrender.com/api/request-types/all",
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            console.error("Request Type API Error");
+
+            return;
+        }
+
+        const types = await response.json();
+
+        console.log(types);
 
         const typeSelect =
             document.getElementById("req-type");
@@ -321,91 +336,92 @@ async function loadFormData() {
         typeSelect.innerHTML =
             '<option value="">Select Type</option>';
 
-        types.forEach(type => {
+        if (Array.isArray(types)) {
 
-            const option =
-                document.createElement("option");
+            types.forEach(type => {
 
-            option.value = type.id;
-            option.textContent = type.name;
+                typeSelect.innerHTML += `
+                    <option value="${type.id}">
+                        ${type.name}
+                    </option>
+                `;
+            });
+        }
 
-            typeSelect.appendChild(option);
-        });
+    } catch (err) {
 
-    } catch (error) {
-
-        console.error(error);
-
-        alert("Error loading form data");
+        console.error(err);
     }
 }
 
 document
-    .getElementById("createRequestForm")
-    .addEventListener("submit", async function (e) {
+.getElementById("createRequestForm")
+.addEventListener("submit", async function(e) {
 
-        e.preventDefault();
+    e.preventDefault();
 
-        const payload = {
+    const payload = {
 
-            title:
-                document.getElementById("req-title").value,
+        title:
+            document.getElementById("req-title").value,
 
-            description:
-                document.getElementById("req-desc").value,
+        description:
+            document.getElementById("req-desc").value,
 
-            departmentId:
-                parseInt(
-                    document.getElementById("req-dept").value
-                ),
+        departmentId:
+            parseInt(
+                document.getElementById("req-dept").value
+            ),
 
-            requestTypeId:
-                parseInt(
-                    document.getElementById("req-type").value
-                ),
+        requestTypeId:
+            parseInt(
+                document.getElementById("req-type").value
+            ),
 
-            priority:
-                document.getElementById("req-priority").value
-        };
+        priority:
+            document.getElementById("req-priority").value
+    };
 
-        try {
+    try {
 
-            const response = await fetch(
-                "https://service-request-workflow-system-1.onrender.com/api/requests",
-                {
-                    method: "POST",
-                    headers: authHeaders(),
-                    body: JSON.stringify(payload)
-                }
-            );
+        const response = await fetch(
+            "https://service-request-workflow-system-1.onrender.com/api/requests",
+            {
+                method: "POST",
 
-            const data =
-                await response.json();
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
 
-            if (!response.ok) {
-
-                alert(
-                    data.message ||
-                    "Failed to create request"
-                );
-
-                return;
+                body: JSON.stringify(payload)
             }
+        );
 
-            alert("Request Created Successfully!");
+        const data = await response.json();
+
+        if (response.ok) {
+
+            alert("Request Created Successfully");
 
             window.location.href =
                 "user-dashboard.html";
 
-        } catch (error) {
+        } else {
 
-            console.error(error);
-
-            alert("Server Error");
+            alert(data.message || "Failed");
         }
-    });
 
-loadFormData();
+    } catch (err) {
+
+        console.error(err);
+
+        alert("Server Error");
+    }
+});
+
+loadDepartments();
+loadRequestTypes();
 
 </script>
 
