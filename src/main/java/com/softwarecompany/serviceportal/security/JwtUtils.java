@@ -1,7 +1,6 @@
 package com.softwarecompany.serviceportal.security;
 
 import io.jsonwebtoken.*;
-import io.jsonwebtoken.io.Decoders;
 import io.jsonwebtoken.security.Keys;
 
 import org.slf4j.Logger;
@@ -11,6 +10,7 @@ import org.springframework.beans.factory.annotation.Value;
 import org.springframework.security.core.Authentication;
 import org.springframework.stereotype.Component;
 
+import java.nio.charset.StandardCharsets;
 import java.security.Key;
 import java.util.Date;
 
@@ -34,7 +34,7 @@ public class JwtUtils {
 
         return Jwts.builder()
 
-                // IMPORTANT: use USERNAME
+                // use username
                 .setSubject(userPrincipal.getUsername())
 
                 .setIssuedAt(new Date())
@@ -55,7 +55,7 @@ public class JwtUtils {
     private Key key() {
 
         return Keys.hmacShaKeyFor(
-                Decoders.BASE64.decode(jwtSecret)
+                jwtSecret.getBytes(StandardCharsets.UTF_8)
         );
     }
 
@@ -78,7 +78,7 @@ public class JwtUtils {
             Jwts.parserBuilder()
                     .setSigningKey(key())
                     .build()
-                    .parse(authToken);
+                    .parseClaimsJws(authToken);
 
             return true;
 
