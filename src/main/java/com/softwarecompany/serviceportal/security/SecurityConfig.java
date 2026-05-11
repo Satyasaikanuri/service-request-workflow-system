@@ -7,6 +7,7 @@ import org.springframework.http.HttpMethod;
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.dao.DaoAuthenticationProvider;
 import org.springframework.security.config.annotation.authentication.configuration.AuthenticationConfiguration;
+import org.springframework.security.config.annotation.method.configuration.EnableMethodSecurity;
 import org.springframework.security.config.annotation.web.builders.HttpSecurity;
 import org.springframework.security.config.annotation.web.configuration.EnableWebSecurity;
 import org.springframework.security.config.http.SessionCreationPolicy;
@@ -21,6 +22,7 @@ import java.util.List;
 
 @Configuration
 @EnableWebSecurity
+@EnableMethodSecurity
 public class SecurityConfig {
 
     @Autowired
@@ -87,6 +89,8 @@ public class SecurityConfig {
                                 "/admin-dashboard.html",
                                 "/manager-dashboard.html",
                                 "/approver-dashboard.html",
+                                "/favicon.ico",
+                                "/error",
                                 "/css/**",
                                 "/js/**",
                                 "/images/**",
@@ -106,10 +110,10 @@ public class SecurityConfig {
                                 "/v3/api-docs/**"
                         ).permitAll()
 
-                        // Allow preflight requests
+                        // OPTIONS requests
                         .requestMatchers(HttpMethod.OPTIONS, "/**").permitAll()
 
-                        // Everything else secured
+                        // Secure remaining APIs
                         .anyRequest().authenticated()
                 );
 
@@ -129,10 +133,13 @@ public class SecurityConfig {
         CorsConfiguration configuration = new CorsConfiguration();
 
         configuration.setAllowedOriginPatterns(List.of("*"));
+
         configuration.setAllowedMethods(
                 List.of("GET", "POST", "PUT", "DELETE", "OPTIONS")
         );
+
         configuration.setAllowedHeaders(List.of("*"));
+
         configuration.setAllowCredentials(false);
 
         UrlBasedCorsConfigurationSource source =
