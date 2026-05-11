@@ -51,7 +51,7 @@ public class AuthService {
     @Value("${app.admin.secret-key}")
     private String adminSecretKey;
 
-    // LOGIN
+    // ================= LOGIN =================
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
 
         Authentication authentication = authenticationManager.authenticate(
@@ -94,14 +94,24 @@ public class AuthService {
         );
     }
 
-    // REGISTER
+    // ================= REGISTER =================
     public ResponseEntity<?> registerUser(SignupRequest signUpRequest) {
 
+        // Check email exists
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
 
             return ResponseEntity.badRequest()
                     .body(new MessageResponse(
                             "Error: Email is already in use!"
+                    ));
+        }
+
+        // Check username exists
+        if (userRepository.existsByUsername(signUpRequest.getUsername())) {
+
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(
+                            "Error: Username is already taken!"
                     ));
         }
 
@@ -120,7 +130,8 @@ public class AuthService {
 
         Role role;
 
-        if (roleStr == null) {
+        // Default USER role
+        if (roleStr == null || roleStr.isEmpty()) {
 
             role = roleRepository.findByName(Role.RoleName.USER)
                     .orElseThrow(() ->
