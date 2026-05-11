@@ -1,5 +1,4 @@
 package com.softwarecompany.serviceportal.services;
-import com.softwarecompany.serviceportal.security.UserDetailsImpl;
 import com.softwarecompany.serviceportal.dtos.MessageResponse;
 import com.softwarecompany.serviceportal.dtos.ServiceRequestCreateDTO;
 import com.softwarecompany.serviceportal.models.*;
