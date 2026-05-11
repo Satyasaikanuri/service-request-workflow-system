@@ -54,12 +54,12 @@ public class AuthService {
     // LOGIN
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
 
-       Authentication authentication = authenticationManager.authenticate(
-        new UsernamePasswordAuthenticationToken(
-                loginRequest.getEmail(),
-                loginRequest.getPassword()
-        )
-);
+        Authentication authentication = authenticationManager.authenticate(
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
 
