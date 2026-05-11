@@ -12,7 +12,6 @@
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
 
     <style>
-
         :root {
             --bg-user: #0f172a;
             --nav-user: rgba(15, 23, 42, 0.95);
@@ -24,9 +23,17 @@
             --input-border: #334155;
         }
 
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
         body.user-theme {
             background: var(--bg-user);
             color: var(--text-user);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
         }
 
         .top-navbar {
@@ -45,6 +52,7 @@
             max-width: 800px;
             margin: 2rem auto;
             overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
         }
 
         .form-header {
@@ -64,23 +72,59 @@
             display: block;
             margin-bottom: 0.5rem;
             color: var(--text-muted);
+            font-size: 14px;
         }
 
         .form-control {
             width: 100%;
-            padding: 0.75rem;
-            border-radius: 6px;
+            padding: 0.9rem;
+            border-radius: 8px;
             border: 1px solid var(--input-border);
             background: var(--input-bg);
             color: white;
+            font-size: 15px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        textarea.form-control {
+            resize: vertical;
         }
 
         .btn {
-            padding: 0.75rem 2rem;
-            border-radius: 6px;
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
             cursor: pointer;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
         }
 
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .form-card {
+                margin: 1rem;
+            }
+
+            .form-body {
+                padding: 1.5rem;
+            }
+        }
     </style>
 </head>
 
@@ -112,6 +156,7 @@
                 <form id="createRequestForm">
 
                     <div class="form-group">
+
                         <label class="form-label">Title</label>
 
                         <input
@@ -119,6 +164,7 @@
                             id="req-title"
                             class="form-control"
                             required>
+
                     </div>
 
                     <div class="form-group">
@@ -133,6 +179,7 @@
                             <option value="">Select Department</option>
 
                         </select>
+
                     </div>
 
                     <div class="form-group">
@@ -147,6 +194,7 @@
                             <option value="">Select Type</option>
 
                         </select>
+
                     </div>
 
                     <div class="form-group">
@@ -163,6 +211,7 @@
                             <option value="CRITICAL">CRITICAL</option>
 
                         </select>
+
                     </div>
 
                     <div class="form-group">
@@ -179,8 +228,7 @@
 
                     <button
                         type="submit"
-                        class="btn"
-                        style="background:#3b82f6;color:white;border:none;">
+                        class="btn">
 
                         Submit Request
 
@@ -194,9 +242,7 @@
 
     </main>
 
-    <script src="js/common.js"></script>
-
-   <script>
+<script>
 
 const API_BASE_URL =
     'https://service-request-workflow-system-1.onrender.com/api';
@@ -205,6 +251,7 @@ const API_BASE_URL =
 const token = localStorage.getItem("token");
 
 if (!token) {
+
     window.location.href = "login.html";
 }
 
@@ -213,13 +260,16 @@ const user =
     JSON.parse(localStorage.getItem("user"));
 
 if (user) {
+
     document.getElementById("user-name").innerText =
         user.username;
 }
 
 // Common headers
 function authHeaders() {
+
     return {
+
         "Content-Type": "application/json",
         "Authorization": `Bearer ${token}`
     };
@@ -230,31 +280,42 @@ async function loadFormData() {
 
     try {
 
+        // Departments
         const deptResponse = await fetch(
-            `${API_BASE_URL}/common/departments`,
+            `${API_BASE_URL}/departments`,
             {
                 method: "GET",
                 headers: authHeaders()
             }
         );
 
+        // Request Types
         const typeResponse = await fetch(
-            `${API_BASE_URL}/common/request-types`,
+            `${API_BASE_URL}/request-types`,
             {
                 method: "GET",
                 headers: authHeaders()
             }
         );
 
-        if (!deptResponse.ok || !typeResponse.ok) {
-            throw new Error("Failed to load form data");
-        }
+        console.log("Department Status:", deptResponse.status);
+        console.log("Type Status:", typeResponse.status);
 
-        const depts = await deptResponse.json();
-        const types = await typeResponse.json();
+        const depts =
+            await deptResponse.json();
 
+        const types =
+            await typeResponse.json();
+
+        console.log("Departments:", depts);
+        console.log("Types:", types);
+
+        // Department dropdown
         const deptSelect =
             document.getElementById("req-dept");
+
+        deptSelect.innerHTML =
+            '<option value="">Select Department</option>';
 
         depts.forEach(dept => {
 
@@ -267,8 +328,12 @@ async function loadFormData() {
             deptSelect.appendChild(option);
         });
 
+        // Request type dropdown
         const typeSelect =
             document.getElementById("req-type");
+
+        typeSelect.innerHTML =
+            '<option value="">Select Type</option>';
 
         types.forEach(type => {
 
@@ -318,6 +383,8 @@ document
                 document.getElementById("req-priority").value
         };
 
+        console.log(payload);
+
         try {
 
             const response = await fetch(
@@ -329,12 +396,16 @@ document
                 }
             );
 
-            const data = await response.json();
+            const data =
+                await response.json();
+
+            console.log(data);
 
             if (!response.ok) {
 
                 alert(
-                    data.message || "Failed to create request"
+                    data.message ||
+                    "Failed to create request"
                 );
 
                 return;
@@ -357,6 +428,6 @@ document
 loadFormData();
 
 </script>
-</body>
 
+</body>
 </html>
