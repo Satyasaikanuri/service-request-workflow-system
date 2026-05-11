@@ -12,6 +12,7 @@ import com.softwarecompany.serviceportal.repositories.RoleRepository;
 import com.softwarecompany.serviceportal.repositories.UserRepository;
 import com.softwarecompany.serviceportal.security.JwtUtils;
 import com.softwarecompany.serviceportal.security.UserDetailsImpl;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
 import org.springframework.http.ResponseEntity;
@@ -28,6 +29,7 @@ import java.util.stream.Collectors;
 
 @Service
 public class AuthService {
+
     @Autowired
     AuthenticationManager authenticationManager;
 
@@ -49,83 +51,161 @@ public class AuthService {
     @Value("${app.admin.secret-key}")
     private String adminSecretKey;
 
+    // LOGIN
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
+
         Authentication authentication = authenticationManager.authenticate(
-                new UsernamePasswordAuthenticationToken(loginRequest.getEmail(), loginRequest.getPassword()));
+                new UsernamePasswordAuthenticationToken(
+                        loginRequest.getUsername(),
+                        loginRequest.getPassword()
+                )
+        );
 
         SecurityContextHolder.getContext().setAuthentication(authentication);
+
         String jwt = jwtUtils.generateJwtToken(authentication);
 
-        UserDetailsImpl userDetails = (UserDetailsImpl) authentication.getPrincipal();
+        UserDetailsImpl userDetails =
+                (UserDetailsImpl) authentication.getPrincipal();
+
         List<String> roles = userDetails.getAuthorities().stream()
                 .map(GrantedAuthority::getAuthority)
                 .collect(Collectors.toList());
 
         String departmentName = null;
+
         if (userDetails.getDepartmentId() != null) {
-            departmentName = departmentRepository.findById(userDetails.getDepartmentId())
-                    .map(Department::getName).orElse(null);
+
+            departmentName = departmentRepository
+                    .findById(userDetails.getDepartmentId())
+                    .map(Department::getName)
+                    .orElse(null);
         }
 
-        return ResponseEntity.ok(new JwtResponse(jwt,
-                userDetails.getId(),
-                userDetails.getUsername(),
-                userDetails.getEmail(),
-                roles,
-                departmentName));
+        return ResponseEntity.ok(
+                new JwtResponse(
+                        jwt,
+                        userDetails.getId(),
+                        userDetails.getUsername(),
+                        userDetails.getEmail(),
+                        roles,
+                        departmentName
+                )
+        );
     }
 
+    // REGISTER
     public ResponseEntity<?> registerUser(SignupRequest signUpRequest) {
+
         if (userRepository.existsByEmail(signUpRequest.getEmail())) {
-            return ResponseEntity.badRequest().body(new MessageResponse("Error: Email is already in use!"));
+
+            return ResponseEntity.badRequest()
+                    .body(new MessageResponse(
+                            "Error: Email is already in use!"
+                    ));
         }
 
-        // Create new user's account
+        // Create user
         User user = new User();
+
         user.setUsername(signUpRequest.getUsername());
         user.setEmail(signUpRequest.getEmail());
-        user.setPassword(encoder.encode(signUpRequest.getPassword()));
+
+        // Encode password
+        user.setPassword(
+                encoder.encode(signUpRequest.getPassword())
+        );
 
         String roleStr = signUpRequest.getRole();
+
         Role role;
 
         if (roleStr == null) {
+
             role = roleRepository.findByName(Role.RoleName.USER)
-                    .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                    .orElseThrow(() ->
+                            new RuntimeException(
+                                    "Error: Role not found."
+                            ));
+
         } else {
+
             switch (roleStr.toLowerCase()) {
+
                 case "admin":
-                    if (!adminSecretKey.equals(signUpRequest.getAdminSecret())) {
+
+                    if (!adminSecretKey.equals(
+                            signUpRequest.getAdminSecret())) {
+
                         return ResponseEntity.badRequest()
-                                .body(new MessageResponse("Error: Invalid Admin Secret Key!"));
+                                .body(new MessageResponse(
+                                        "Error: Invalid Admin Secret Key!"
+                                ));
                     }
+
                     role = roleRepository.findByName(Role.RoleName.ADMIN)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Error: Role not found."
+                                    ));
+
                     break;
+
                 case "approver":
+
                     role = roleRepository.findByName(Role.RoleName.APPROVER)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Error: Role not found."
+                                    ));
+
                     if (signUpRequest.getDepartmentId() == null) {
+
                         return ResponseEntity.badRequest()
-                                .body(new MessageResponse("Error: Department is required for Approver!"));
+                                .body(new MessageResponse(
+                                        "Error: Department is required for Approver!"
+                                ));
                     }
-                    Department dept = departmentRepository.findById(signUpRequest.getDepartmentId())
-                            .orElseThrow(() -> new RuntimeException("Error: Department not found."));
-                    user.setDepartment(dept);
+
+                    Department department = departmentRepository
+                            .findById(signUpRequest.getDepartmentId())
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Error: Department not found."
+                                    ));
+
+                    user.setDepartment(department);
+
                     break;
+
                 case "manager":
+
                     role = roleRepository.findByName(Role.RoleName.MANAGER)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Error: Role not found."
+                                    ));
+
                     break;
+
                 default:
+
                     role = roleRepository.findByName(Role.RoleName.USER)
-                            .orElseThrow(() -> new RuntimeException("Error: Role is not found."));
+                            .orElseThrow(() ->
+                                    new RuntimeException(
+                                            "Error: Role not found."
+                                    ));
             }
         }
 
         user.setRole(role);
+
         userRepository.save(user);
 
-        return ResponseEntity.ok(new MessageResponse("User registered successfully!"));
+        return ResponseEntity.ok(
+                new MessageResponse(
+                        "User registered successfully!"
+                )
+        );
     }
 }
