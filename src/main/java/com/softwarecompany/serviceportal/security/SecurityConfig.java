@@ -130,6 +130,14 @@ public class SecurityConfig {
                         .requestMatchers("/api/common/**")
                         .permitAll()
 
+                        // DEPARTMENT APIs
+                        .requestMatchers("/api/departments/**")
+                        .permitAll()
+
+                        // REQUEST TYPE APIs
+                        .requestMatchers("/api/request-types/**")
+                        .permitAll()
+
                         // TEST APIs
                         .requestMatchers("/api/test/**")
                         .permitAll()
