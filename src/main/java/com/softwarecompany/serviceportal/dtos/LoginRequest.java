@@ -3,23 +3,24 @@ package com.softwarecompany.serviceportal.dtos;
 import jakarta.validation.constraints.NotBlank;
 
 public class LoginRequest {
+
     @NotBlank
-    private String email;
+    private String username;
 
     @NotBlank
     private String password;
 
-    // Constructors
+    // Constructor
     public LoginRequest() {
     }
 
-    // Getters and Setters
-    public String getEmail() {
-        return email;
+    // Getter and Setter
+    public String getUsername() {
+        return username;
     }
 
-    public void setEmail(String email) {
-        this.email = email;
+    public void setUsername(String username) {
+        this.username = username;
     }
 
     public String getPassword() {
