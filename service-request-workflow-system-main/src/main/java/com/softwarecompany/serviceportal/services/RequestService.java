@@ -55,14 +55,7 @@ public class RequestService {
         UserDetailsImpl userDetails = getCurrentUser();
         User user = userRepository.findById(userDetails.getId()).orElseThrow();
 
-        // Constraint: Check laptop assignment for ROLE_USER
-        if (user.getRole().getName() == Role.RoleName.USER) {
-            if (laptopRepository.findByAssignedUserId(user.getId()).isEmpty()) {
-                return ResponseEntity.badRequest()
-                        .body(new MessageResponse(
-                                "Error: You must have an assigned laptop to create service requests. Please contact your manager."));
-            }
-        }
+        // Constraint removed: Users can now submit requests without needing a laptop assigned by a manager.
 
         Department dept = departmentRepository.findById(createDTO.getDepartmentId())
                 .orElseThrow(() -> new RuntimeException("Error: Department not found"));
