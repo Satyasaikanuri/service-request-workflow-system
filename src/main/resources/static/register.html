@@ -7,6 +7,8 @@
     <title>Register - Service Request Workflow Portal</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Specific overrides for the split auth layout (shared with login.html) */
         body {
@@ -348,13 +350,11 @@
 
             // Client side validation
             if (role === 'approver' && !departmentId) {
-                errorDiv.textContent = 'Please select a department for approver role.';
-                errorDiv.classList.remove('hidden');
+                showErrorToast('Please select a department for approver role.');
                 return;
             }
             if (role === 'admin' && !adminSecret) {
-                errorDiv.textContent = 'Admin Secret Key is required for admin role.';
-                errorDiv.classList.remove('hidden');
+                showErrorToast('Admin Secret Key is required for admin role.');
                 return;
             }
 
@@ -372,14 +372,12 @@
 
             try {
                 const data = await API.post('/auth/signup', payload, false);
-                successDiv.textContent = 'Registration successful! Redirecting to login...';
-                successDiv.classList.remove('hidden');
+                showSuccessToast('Registration successful!');
                 setTimeout(() => {
                     window.location.href = 'login.html';
-                }, 2000);
+                }, 1500);
             } catch (err) {
-                errorDiv.textContent = err.message || 'Registration failed.';
-                errorDiv.classList.remove('hidden');
+                showErrorToast(err.message || 'Registration failed.');
                 btn.disabled = false;
                 btn.innerText = 'Sign Up';
             }

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* User Dashboard Specific Styles (Dark Theme) */
         :root {
@@ -272,6 +274,8 @@
     <body class="user-theme">
 
         <div class="layout-wrapper">
+            <!-- SIDEBAR OVERLAY -->
+            <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
             <!-- SIDEBAR -->
             <aside class="sidebar">
                 <div class="sidebar-brand">
@@ -313,9 +317,12 @@
                 <nav class="top-navbar">
                     <!-- existing navbar content -->
                     <div style="display: flex; align-items: center; gap: 1rem;">
+                        <button class="hamburger-menu" onclick="toggleSidebar()">
+                            <i class="fas fa-bars"></i>
+                        </button>
                         <i class="fas fa-layer-group fa-lg" style="color: #3b82f6;"></i>
                         <span style="font-weight: 700; font-size: 1.25rem;">My Requests <span
-                                style="font-weight: 400; color: #64748b; font-size: 1rem;">Dashboard</span></span>
+                                class="desktop-only" style="font-weight: 400; color: #64748b; font-size: 1rem;">Dashboard</span></span>
                     </div>
 
                     <div style="display: flex; align-items: center; gap: 1.5rem;">
@@ -520,6 +527,28 @@
             </div>
         </div>
 
+
+        <!-- Mobile Bottom Navigation -->
+        <nav class="mobile-bottom-nav">
+            <div class="nav-container">
+                <a href="#" class="nav-item active" onclick="UserDashboard.switchView('dashboard')">
+                    <i class="fas fa-th-large"></i>
+                    <span>Dashboard</span>
+                </a>
+                <a href="#" class="nav-item" onclick="UserDashboard.switchView('myrequests')">
+                    <i class="fas fa-list"></i>
+                    <span>Requests</span>
+                </a>
+                <a href="#" class="nav-item" onclick="UserDashboard.switchView('reports')">
+                    <i class="fas fa-chart-pie"></i>
+                    <span>Reports</span>
+                </a>
+                <a href="#" class="nav-item" onclick="Auth.logout()">
+                    <i class="fas fa-sign-out-alt"></i>
+                    <span>Logout</span>
+                </a>
+            </div>
+        </nav>
 
         <script src="js/common.js"></script>
         <script src="js/user-dashboard.js"></script>

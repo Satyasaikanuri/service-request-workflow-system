@@ -10,9 +10,17 @@ const Auth = {
     },
 
     logout: () => {
-        localStorage.removeItem('token');
-        localStorage.removeItem('user');
-        window.location.href = 'login.html';
+        if (typeof showConfirmationModal === 'function') {
+            showConfirmationModal('Logout', 'Are you sure you want to log out?', 'Logout', () => {
+                localStorage.removeItem('token');
+                localStorage.removeItem('user');
+                window.location.href = 'login.html';
+            });
+        } else {
+            localStorage.removeItem('token');
+            localStorage.removeItem('user');
+            window.location.href = 'login.html';
+        }
     },
 
     checkAuth: () => {
@@ -138,3 +146,72 @@ const API = {
         return data;
     }
 };
+
+// UI Toggles
+function toggleSidebar() {
+    const sidebar = document.querySelector('.sidebar');
+    const overlay = document.querySelector('.sidebar-overlay');
+    if (sidebar) sidebar.classList.toggle('open');
+    if (overlay) overlay.classList.toggle('show');
+}
+
+// Notifications (SweetAlert2)
+const Toast = Swal.mixin({
+    toast: true,
+    position: 'top-end',
+    showConfirmButton: false,
+    timer: 3000,
+    timerProgressBar: true,
+    background: '#111827',
+    color: '#ffffff',
+    customClass: {
+        popup: 'saas-toast'
+    },
+    didOpen: (toast) => {
+        toast.addEventListener('mouseenter', Swal.stopTimer)
+        toast.addEventListener('mouseleave', Swal.resumeTimer)
+    }
+});
+
+function showSuccessToast(message) {
+    Toast.fire({
+        icon: 'success',
+        title: message
+    });
+}
+
+function showErrorToast(message) {
+    Toast.fire({
+        icon: 'error',
+        title: message
+    });
+}
+
+function showConfirmationModal(title, text, confirmText, callback) {
+    Swal.fire({
+        title: title,
+        text: text,
+        icon: 'warning',
+        showCancelButton: true,
+        confirmButtonColor: '#3B82F6',
+        cancelButtonColor: 'rgba(255,255,255,0.1)',
+        confirmButtonText: confirmText,
+        background: '#111827',
+        color: '#ffffff',
+        customClass: {
+            popup: 'saas-modal',
+            cancelButton: 'saas-cancel-btn'
+        },
+        showClass: {
+            popup: 'animate__animated animate__fadeInDown'
+        },
+        hideClass: {
+            popup: 'animate__animated animate__fadeOutUp'
+        }
+    }).then((result) => {
+        if (result.isConfirmed && typeof callback === 'function') {
+            callback();
+        }
+    });
+}
+

@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Admin specific overrides if needed, generic styles in styles.css */
         .admin-layout {
@@ -511,7 +513,7 @@
                 <span style="font-weight: 300; opacity: 0.7">Admin</span></span>
         </div>
 
-        <div style="display: flex; gap: 2rem;">
+        <div class="desktop-only" style="display: flex; gap: 2rem;">
             <a href="#" class="nav-link active" id="nav-dashboard"
                 onclick="AdminDashboard.switchView('dashboard')">Dashboard</a>
             <a href="#" class="nav-link" id="nav-departments"
@@ -522,7 +524,7 @@
         </div>
 
         <div style="display: flex; align-items: center; gap: 2rem;">
-            <div style="position: relative;">
+            <div class="desktop-only" style="position: relative;">
                 <i class="fas fa-search"
                     style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
                 <input type="text" placeholder="Search system..."
@@ -931,6 +933,28 @@
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" onclick="AdminDashboard.switchView('dashboard')">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('departments')">
+                <i class="fas fa-building"></i>
+                <span>Departments</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('users')">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('approvers')">
+                <i class="fas fa-user-check"></i>
+                <span>Approvers</span>
+            </a>
+        </div>
+    </nav>
 
     <script src="js/common.js"></script>
     <script src="js/admin-dashboard.js"></script>

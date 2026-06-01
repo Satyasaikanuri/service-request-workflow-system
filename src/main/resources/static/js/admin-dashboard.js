@@ -48,7 +48,7 @@ const AdminDashboard = {
 
         } catch (error) {
             console.error("Dashboard Data Load Error:", error);
-            if (!silent) Toast.error("Failed to load dashboard data.");
+            if (!silent) showErrorToast("Failed to load dashboard data.");
         }
     },
 
@@ -427,32 +427,33 @@ const AdminDashboard = {
             if (id) {
                 // Update
                 await API.put(`/departments/${id}`, payload);
-                Toast.success("Department updated successfully!");
+                showSuccessToast("Department updated successfully!");
             } else {
                 // Create
                 await API.post('/departments', payload);
-                Toast.success("Department created successfully!");
+                showSuccessToast("Department created successfully!");
             }
             document.getElementById('dept-modal').classList.remove('show');
             this.fetchDepartments(); // Refresh list
         } catch (error) {
             console.error("Error saving department:", error);
-            Toast.error("Failed to save department. " + (error.message || ""));
+            showErrorToast("Failed to save department. " + (error.message || ""));
         }
     },
 
     deleteDepartment: function (id) {
-        CustomConfirm.show(
+        showConfirmationModal(
             "Delete Department?",
             "Are you sure you want to delete this department? This cannot be undone.",
+            'Delete',
             async () => {
                 try {
                     await API.delete(`/departments/${id}`);
-                    Toast.success("Department deleted successfully!");
+                    showSuccessToast("Department deleted successfully!");
                     this.fetchDepartments();
                 } catch (error) {
                     console.error("Error deleting department:", error);
-                    Toast.error("Failed to delete department. " + (error.message || ""));
+                    showErrorToast("Failed to delete department. " + (error.message || ""));
                 }
             }
         );
@@ -629,10 +630,10 @@ const AdminDashboard = {
         try {
             if (id) {
                 await API.put(`/admin/users/${id}`, payload);
-                Toast.success("User updated successfully!");
+                showSuccessToast("User updated successfully!");
             } else {
                 await API.post('/admin/users', payload);
-                Toast.success("User created successfully!");
+                showSuccessToast("User created successfully!");
             }
             document.getElementById('user-modal').classList.remove('show');
 
@@ -645,18 +646,19 @@ const AdminDashboard = {
             }
         } catch (error) {
             console.error("Error saving user:", error);
-            Toast.error("Failed to save user. " + (error.message || ""));
+            showErrorToast("Failed to save user. " + (error.message || ""));
         }
     },
 
     deleteUser: function (id) {
-        CustomConfirm.show(
+        showConfirmationModal(
             "Delete User?",
             "Are you sure you want to delete this user? This cannot be undone.",
+            'Delete',
             async () => {
                 try {
                     await API.delete(`/admin/users/${id}`);
-                    Toast.success("User deleted successfully!");
+                    showSuccessToast("User deleted successfully!");
 
                     if (this.activeView === 'approvers') {
                         this.fetchApprovers();
@@ -665,7 +667,7 @@ const AdminDashboard = {
                     }
                 } catch (error) {
                     console.error("Error deleting user:", error);
-                    Toast.error("Failed to delete user. " + (error.message || ""));
+                    showErrorToast("Failed to delete user. " + (error.message || ""));
                 }
             }
         );
@@ -673,77 +675,8 @@ const AdminDashboard = {
 
 };
 
-const Toast = {
-    show: function (message, type = 'info', duration = 4000) {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
-
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-
-        const icons = {
-            'success': 'fa-check-circle',
-            'error': 'fa-exclamation-circle',
-            'info': 'fa-info-circle'
-        };
-
-        toast.innerHTML = `
-            <i class="fas ${icons[type] || icons.info} toast-icon"></i>
-            <div class="toast-content">${message}</div>
-            <i class="fas fa-times toast-close"></i>
-        `;
-
-        container.appendChild(toast);
-
-        // Click to close
-        toast.querySelector('.toast-close').onclick = () => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 300);
-        };
-
-        // Auto remove
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, duration);
-    },
-    success: function (msg) { this.show(msg, 'success'); },
-    error: function (msg) { this.show(msg, 'error'); },
-    info: function (msg) { this.show(msg, 'info'); }
-};
-
-const CustomConfirm = {
-    callback: null,
-
-    show: function (title, text, callback) {
-        this.callback = callback;
-        document.getElementById('confirm-title').innerText = title;
-        document.getElementById('confirm-text').innerText = text;
-        document.getElementById('confirmation-modal').classList.add('show');
-    },
-
-    hide: function () {
-        document.getElementById('confirmation-modal').classList.remove('show');
-        this.callback = null;
-    },
-
-    init: function () {
-        const cancelBtn = document.getElementById('confirm-cancel');
-        const proceedBtn = document.getElementById('confirm-proceed');
-
-        if (cancelBtn) cancelBtn.addEventListener('click', () => this.hide());
-        if (proceedBtn) proceedBtn.addEventListener('click', () => {
-            if (this.callback) this.callback();
-            this.hide();
-        });
-    }
-};
-
 document.addEventListener('DOMContentLoaded', () => {
     AdminDashboard.init();
-    CustomConfirm.init();
 
     // Close notifications on click outside
     document.addEventListener('click', (e) => {

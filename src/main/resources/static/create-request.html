@@ -10,7 +10,8 @@
 
     <link rel="stylesheet"
         href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
-
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --bg-user: #0f172a;
@@ -401,22 +402,16 @@ document
         const data = await response.json();
 
         if (response.ok) {
-
-            alert("Request Created Successfully");
-
-            window.location.href =
-                "user-dashboard.html";
-
+            showSuccessToast("Request Created Successfully");
+            setTimeout(() => {
+                window.location.href = "user-dashboard.html";
+            }, 1000);
         } else {
-
-            alert(data.message || "Failed");
+            showErrorToast(data.message || "Failed");
         }
-
     } catch (err) {
-
         console.error(err);
-
-        alert("Server Error");
+        showErrorToast("Server Error");
     }
 });
 

@@ -59,7 +59,7 @@ const ApproverDashboard = {
 
         } catch (error) {
             console.error(error);
-            if (!silent) Toast.error("Failed to load requests.");
+            if (!silent) showErrorToast("Failed to load requests.");
         }
     },
 
@@ -592,91 +592,28 @@ document.addEventListener('click', function (event) {
     }
 });
 
-const Toast = {
-    show: function (message, type = 'info', duration = 4000) {
-        const container = document.getElementById('toast-container');
-        if (!container) return;
 
-        const toast = document.createElement('div');
-        toast.className = `toast ${type}`;
-
-        const icons = {
-            'success': 'fa-check-circle',
-            'error': 'fa-exclamation-circle',
-            'info': 'fa-info-circle'
-        };
-
-        toast.innerHTML = `
-            <i class="fas ${icons[type] || icons.info} toast-icon"></i>
-            <div class="toast-content">${message}</div>
-            <i class="fas fa-times toast-close"></i>
-        `;
-
-        container.appendChild(toast);
-
-        // Click to close
-        toast.querySelector('.toast-close').onclick = () => {
-            toast.classList.add('fade-out');
-            setTimeout(() => toast.remove(), 300);
-        };
-
-        // Auto remove
-        setTimeout(() => {
-            if (toast.parentElement) {
-                toast.classList.add('fade-out');
-                setTimeout(() => toast.remove(), 300);
-            }
-        }, duration);
-    },
-    success: function (msg) { this.show(msg, 'success'); },
-    error: function (msg) { this.show(msg, 'error'); },
-    info: function (msg) { this.show(msg, 'info'); }
-};
-
-const CustomConfirm = {
-    callback: null,
-
-    show: function (title, text, callback) {
-        this.callback = callback;
-        document.getElementById('confirm-title').innerText = title;
-        document.getElementById('confirm-text').innerText = text;
-        document.getElementById('confirmation-modal').classList.add('show');
-    },
-
-    hide: function () {
-        document.getElementById('confirmation-modal').classList.remove('show');
-        this.callback = null;
-    },
-
-    init: function () {
-        document.getElementById('confirm-cancel').addEventListener('click', () => this.hide());
-        document.getElementById('confirm-proceed').addEventListener('click', () => {
-            if (this.callback) this.callback();
-            this.hide();
-        });
-    }
-};
 
 function submitAction(status) {
     const remarks = document.getElementById('action-remarks').value;
     if (!remarks.trim()) {
-        Toast.error("Please provide remarks/reason for this action.");
+        showErrorToast("Please provide remarks/reason for this action.");
         return;
     }
 
     const title = status === 'APPROVED' ? 'Approve Request?' : 'Reject Request?';
     const text = `Are you sure you want to ${status.toLowerCase()} this request? This action cannot be undone.`;
 
-    CustomConfirm.show(title, text, () => {
+    showConfirmationModal(title, text, 'Confirm', () => {
         API.put(`/requests/${ApproverDashboard.currentReqId}/status`, {
             status: status,
             remarks: remarks
         }).then(resp => {
-            Toast.success(`Request ${status.toLowerCase()} successfully`);
+            showSuccessToast(`Request ${status.toLowerCase()} successfully`);
             closeModal();
             ApproverDashboard.loadData();
         }).catch(err => {
-            Toast.error("Error: " + err.message);
+            showErrorToast("Error: " + err.message);
         });
     });
 }
@@ -688,5 +625,4 @@ function closeModal() {
 
 document.addEventListener('DOMContentLoaded', () => {
     ApproverDashboard.init();
-    CustomConfirm.init();
 });

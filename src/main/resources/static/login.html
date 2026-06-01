@@ -7,7 +7,8 @@
     <title>Login - Service Portal</title>
 
     <link rel="stylesheet" href="css/styles.css">
-
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         body {
             margin: 0;
@@ -254,52 +255,32 @@ document.getElementById('loginForm')
             }
         );
 
-        if (response.ok) {
+            if (response.ok) {
+                const data = await response.json();
+                Auth.saveToken(data.token, data);
 
-            const data = await response.json();
+                showSuccessToast('Login Successful');
 
-            Auth.saveToken(data.token, data);
-
-            if (data.roles.includes('ROLE_ADMIN')) {
-
-                window.location.href =
-                    'admin-dashboard.html';
-
-            } else if (
-                data.roles.includes('ROLE_APPROVER')
-            ) {
-
-                window.location.href =
-                    'approver-dashboard.html';
-
-            } else if (
-                data.roles.includes('ROLE_MANAGER')
-            ) {
-
-                window.location.href =
-                    'manager-dashboard.html';
+                setTimeout(() => {
+                    if (data.roles.includes('ROLE_ADMIN')) {
+                        window.location.href = 'admin-dashboard.html';
+                    } else if (data.roles.includes('ROLE_APPROVER')) {
+                        window.location.href = 'approver-dashboard.html';
+                    } else if (data.roles.includes('ROLE_MANAGER')) {
+                        window.location.href = 'manager-dashboard.html';
+                    } else {
+                        window.location.href = 'user-dashboard.html';
+                    }
+                }, 1000);
 
             } else {
-
-                window.location.href =
-                    'user-dashboard.html';
+                const err = await response.json();
+                throw new Error(err.message || 'Invalid credentials');
             }
 
-        } else {
-
-            const err = await response.json();
-
-            throw new Error(
-                err.message || 'Invalid credentials'
-            );
+        } catch (error) {
+            showErrorToast(error.message);
         }
-
-    } catch (error) {
-
-        errorDiv.innerText = error.message;
-
-        errorDiv.classList.remove('hidden');
-    }
 
 });
 

@@ -115,9 +115,10 @@ const ManagerDashboard = {
                 laptopId: this.selectedLaptop.id
             });
 
-            document.getElementById('confirm-modal').classList.add('show');
+            showSuccessToast('Request Assigned');
+            setTimeout(() => location.reload(), 2000);
         } catch (err) {
-            alert(err.message || "Failed to assign laptop");
+            showErrorToast(err.message || "Failed to assign laptop");
             btn.innerHTML = originalText;
             btn.disabled = false;
         }

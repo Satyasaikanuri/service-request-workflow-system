@@ -7,6 +7,8 @@
     <title>Manager Dashboard - Service Portal</title>
     <link rel="stylesheet" href="css/styles.css">
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         :root {
             --bg-manager: #0f172a;
@@ -178,6 +180,8 @@
 
 <body>
     <div class="layout-wrapper">
+        <!-- SIDEBAR OVERLAY -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
         <aside class="sidebar">
             <div style="padding: 2rem; border-bottom: 1px solid var(--border-color);">
                 <div
@@ -195,10 +199,15 @@
 
         <main class="main-panel">
             <header class="top-navbar">
-                <div>
-                    <h1 style="font-size: 1.5rem; margin: 0;">Manager Dashboard</h1>
-                    <p style="color: var(--text-muted); font-size: 0.9rem; margin: 0.25rem 0 0 0;">Assign hardware to
-                        new employees</p>
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="hamburger-menu" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <div>
+                        <h1 style="font-size: 1.5rem; margin: 0;">Manager Dashboard</h1>
+                        <p class="desktop-only" style="color: var(--text-muted); font-size: 0.9rem; margin: 0.25rem 0 0 0;">Assign hardware to
+                            new employees</p>
+                    </div>
                 </div>
                 <div style="display: flex; align-items: center; gap: 1rem;">
                     <span id="manager-name" style="font-weight: 600;">Manager</span>
@@ -278,6 +287,20 @@
             <button onclick="location.reload()" class="btn-assign" style="width: 100%;">Excellent</button>
         </div>
     </div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active">
+                <i class="fas fa-laptop"></i>
+                <span>Assignment</span>
+            </a>
+            <a href="#" class="nav-item" onclick="Auth.logout()">
+                <i class="fas fa-sign-out-alt"></i>
+                <span>Logout</span>
+            </a>
+        </div>
+    </nav>
 
     <script src="js/common.js"></script>
     <script src="js/manager-dashboard.js"></script>

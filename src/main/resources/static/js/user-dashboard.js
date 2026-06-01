@@ -561,20 +561,25 @@ const UserDashboard = {
         return Math.floor(seconds) + "s ago";
     },
 
-    deleteRequest: async function (id, event) {
+    deleteRequest: function (id, event) {
         // Stop propagation to prevent row click (which opens timeline/details)
         if (event) event.stopPropagation();
 
-        if (!confirm("Are you sure you want to delete this request? This cannot be undone.")) return;
-
-        try {
-            await API.delete(`/requests/${id}`);
-            alert('Request deleted successfully');
-            this.loadData(); // Refresh
-        } catch (error) {
-            console.error("Delete failed", error);
-            alert("Failed to delete request: " + (error.message || "Unknown error"));
-        }
+        showConfirmationModal(
+            'Delete Request',
+            'Are you sure you want to delete this request? This cannot be undone.',
+            'Yes, Delete',
+            async () => {
+                try {
+                    await API.delete(`/requests/${id}`);
+                    showSuccessToast('Request deleted successfully');
+                    this.loadData(); // Refresh
+                } catch (error) {
+                    console.error("Delete failed", error);
+                    showErrorToast("Failed to delete request: " + (error.message || "Unknown error"));
+                }
+            }
+        );
     }
 };
 

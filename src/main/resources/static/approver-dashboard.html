@@ -9,6 +9,8 @@
     <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
     <!-- Chart.js -->
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
     <style>
         /* Shared Dashboard Dark Theme Styles (matching Admin) */
 
@@ -508,6 +510,8 @@
 <body> <!-- Removed class="approver-theme", letting default styles.css + local overrides take over -->
 
     <div class="layout-wrapper">
+        <!-- SIDEBAR OVERLAY -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
         <!-- New Sidebar -->
         <aside class="sidebar">
             <div class="sidebar-bg-layer"></div>
@@ -544,6 +548,9 @@
         <div class="main-panel">
             <nav class="top-navbar">
                 <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="hamburger-menu" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
                     <!-- Removed duplicate Title, kept User/Notifs -->
                     <span style="font-weight: 600; font-size: 1.1rem; color: #cbd5e1;">Approver Workspace</span>
                 </div>
@@ -854,6 +861,28 @@
 
     <!-- Toast Container -->
     <div id="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" onclick="ApproverDashboard.switchView('dashboard')">
+                <i class="fas fa-columns"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('approvals')">
+                <i class="fas fa-list-check"></i>
+                <span>Approvals</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('history')">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('reports')">
+                <i class="fas fa-chart-pie"></i>
+                <span>Reports</span>
+            </a>
+        </div>
+    </nav>
 
     <script src="js/common.js"></script>
     <script src="js/approver-dashboard.js"></script>
