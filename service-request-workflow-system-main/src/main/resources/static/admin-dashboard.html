@@ -1,0 +1,963 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Enterprise Admin Console - Service Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Admin specific overrides if needed, generic styles in styles.css */
+        .admin-layout {
+            display: grid;
+            grid-template-columns: 250px 1fr;
+            height: 100vh;
+            overflow: hidden;
+        }
+
+        .top-navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            grid-column: 1 / -1;
+            z-index: 20;
+            backdrop-filter: blur(10px);
+        }
+
+        .content-area {
+            grid-column: 1 / -1;
+            /* Full width if no sidebar, or adjust */
+            padding: 2rem;
+            overflow-y: auto;
+            background: #0f172a;
+            /* Deep dark background */
+        }
+
+        /* Layout Adjustments */
+        .dashboard-grid {
+            display: grid;
+            gap: 1.5rem;
+            grid-template-columns: repeat(12, 1fr);
+        }
+
+        .col-span-3 {
+            grid-column: span 3;
+        }
+
+        .col-span-4 {
+            grid-column: span 4;
+        }
+
+        .col-span-6 {
+            grid-column: span 6;
+        }
+
+        .col-span-8 {
+            grid-column: span 8;
+        }
+
+        .col-span-12 {
+            grid-column: span 12;
+        }
+
+        /* Custom Card Styles */
+        .kpi-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .kpi-value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .kpi-label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Audit Log Console */
+        .audit-console {
+            background: #000000;
+            border: 1px solid #334155;
+            border-radius: 0.5rem;
+            height: 300px;
+            overflow-y: auto;
+            font-family: 'Courier New', monospace;
+            padding: 1rem;
+            font-size: 0.85rem;
+            color: #22d3ee;
+        }
+
+        .audit-entry {
+            margin-bottom: 0.5rem;
+            border-bottom: 1px dashed #1e293b;
+            padding-bottom: 0.25rem;
+        }
+
+        .audit-time {
+            color: #94a3b8;
+            margin-right: 0.5rem;
+        }
+
+        .audit-action {
+            color: #facc15;
+            font-weight: bold;
+            margin-right: 0.5rem;
+        }
+
+        /* Auto Assignment Monitor */
+        .engine-status {
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+            background: rgba(16, 185, 129, 0.1);
+            color: #10b981;
+            padding: 0.5rem 1rem;
+            border-radius: 99px;
+            font-weight: 600;
+            font-size: 0.85rem;
+            border: 1px solid rgba(16, 185, 129, 0.2);
+        }
+
+        .monitor-table {
+            font-size: 0.9rem;
+        }
+
+        .monitor-table th {
+            background: #1e293b;
+            position: sticky;
+            top: 0;
+        }
+
+        /* Section Header */
+        .section-header {
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            margin-bottom: 1rem;
+            color: #f1f5f9;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.1);
+            padding-bottom: 0.5rem;
+        }
+
+        .section-title {
+            font-size: 1.1rem;
+            font-weight: 600;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        .nav-link:hover {
+            color: #f8fafc;
+        }
+
+        /* Modal Styles Overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        /* Confirmation Modal Specific */
+        .confirm-modal-content {
+            width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .confirm-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 0.75rem;
+        }
+
+        .confirm-text {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .confirm-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 300px;
+            max-width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            color: #f1f5f9;
+            pointer-events: auto;
+            animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast-icon {
+            font-size: 1.125rem;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.25rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.fade-out {
+            animation: toast-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toast-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* Modal Styles Overlay */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(4px);
+            z-index: 1000;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .modal.show {
+            display: flex;
+        }
+
+        /* Confirmation Modal Specific */
+        .confirm-modal-content {
+            width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .confirm-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 0.75rem;
+        }
+
+        .confirm-text {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .confirm-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 300px;
+            max-width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            color: #f1f5f9;
+            pointer-events: auto;
+            animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast-icon {
+            font-size: 1.125rem;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.25rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.fade-out {
+            animation: toast-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toast-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+    </style>
+</head>
+
+<body class="dark-theme">
+
+    <!-- Top Navbar -->
+    <nav class="top-navbar">
+        <div style="display: flex; align-items: center; gap: 1rem;">
+            <i class="fas fa-cube fa-lg" style="color: var(--primary-color)"></i>
+            <span style="font-weight: 700; font-size: 1.25rem; letter-spacing: -0.025em; color: #fff;">ServicePortal
+                <span style="font-weight: 300; opacity: 0.7">Admin</span></span>
+        </div>
+
+        <div class="desktop-only" style="display: flex; gap: 2rem;">
+            <a href="#" class="nav-link active" id="nav-dashboard"
+                onclick="AdminDashboard.switchView('dashboard')">Dashboard</a>
+            <a href="#" class="nav-link" id="nav-departments"
+                onclick="AdminDashboard.switchView('departments')">Departments</a>
+            <a href="#" class="nav-link" id="nav-users" onclick="AdminDashboard.switchView('users')">Users</a>
+            <a href="#" class="nav-link" id="nav-approvers"
+                onclick="AdminDashboard.switchView('approvers')">Approvers</a>
+        </div>
+
+        <div style="display: flex; align-items: center; gap: 2rem;">
+            <div class="desktop-only" style="position: relative;">
+                <i class="fas fa-search"
+                    style="position: absolute; left: 1rem; top: 50%; transform: translateY(-50%); color: #64748b;"></i>
+                <input type="text" placeholder="Search system..."
+                    style="background: #1e293b; border: 1px solid #334155; padding: 0.5rem 1rem 0.5rem 2.5rem; border-radius: 99px; color: white; width: 250px; font-size: 0.9rem;">
+            </div>
+
+            <div style="position: relative; cursor: pointer;" onclick="AdminDashboard.toggleNotifications()">
+                <i class="fas fa-bell" style="color: #94a3b8; font-size: 1.2rem;"></i>
+                <span id="notification-badge"
+                    style="position: absolute; top: -5px; right: -5px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display: none;"></span>
+
+                <!-- Notification Dropdown -->
+                <div id="notification-dropdown"
+                    style="display: none; position: absolute; top: 30px; right: 0; width: 300px; background: #1e293b; border: 1px solid #334155; border-radius: 0.5rem; box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.1); z-index: 100;">
+                    <div style="padding: 1rem; border-bottom: 1px solid #334155; font-weight: 600; color: #fff;">
+                        Notifications
+                    </div>
+                    <div id="notification-list" style="max-height: 300px; overflow-y: auto;">
+                        <div style="padding: 1rem; color: #94a3b8; text-align: center;">No new notifications</div>
+                    </div>
+                </div>
+            </div>
+
+            <div class="user-profile" style="background: transparent; border: none; padding: 0;">
+                <div class="avatar" style="width: 32px; height: 32px; font-size: 0.85rem;">AD</div>
+                <div style="display: flex; flex-direction: column; align-items: flex-start;">
+                    <span style="font-size: 0.85rem; font-weight: 600; color: #fff;">System Admin</span>
+                    <span style="font-size: 0.75rem; color: #64748b;">Super User</span>
+                </div>
+                <a href="#" onclick="Auth.logout()" style="color: #ef4444; font-size: 0.9rem; margin-left: 1rem;"
+                    title="Logout"><i class="fas fa-power-off"></i></a>
+            </div>
+        </div>
+    </nav>
+
+    <!-- Main Content -->
+    <main class="content-area">
+
+        <!-- VIEW: DASHBOARD (Default) -->
+        <div id="view-dashboard">
+            <!-- SECTION 1: KPI SUMMARY CARDS -->
+            <div class="dashboard-grid" style="margin-bottom: 2rem;">
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #3b82f6;">
+                    <div class="kpi-label">Total Requests</div>
+                    <div class="kpi-value" id="kpi-total">0</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">All time volume</div>
+                </div>
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #f59e0b;">
+                    <div class="kpi-label">Pending Action</div>
+                    <div class="kpi-value" id="kpi-pending" style="color: #f59e0b;">0</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Requires attention</div>
+                </div>
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #10b981;">
+                    <div class="kpi-label">Completed</div>
+                    <div class="kpi-value" id="kpi-completed" style="color: #10b981;">0</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Resolved successfully</div>
+                </div>
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #ef4444;">
+                    <div class="kpi-label">Rejected</div>
+                    <div class="kpi-value" id="kpi-rejected" style="color: #ef4444;">0</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Declined requests</div>
+                </div>
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #ec4899;">
+                    <div class="kpi-label">SLA Breaches</div>
+                    <div class="kpi-value" id="kpi-breaches">0</div>
+                    <div style="font-size: 0.8rem; color: #ec4899; margin-top: 5px;">Needs escalation</div>
+                </div>
+                <div class="kpi-card col-span-2" style="border-left: 4px solid #8b5cf6;">
+                    <div class="kpi-label">Active Agents</div>
+                    <div class="kpi-value" id="kpi-agents">0</div>
+                    <div style="font-size: 0.8rem; color: #64748b; margin-top: 5px;">Online now</div>
+                </div>
+            </div>
+
+            <!-- SECTION 2: REQUEST ANALYTICS -->
+            <div class="dashboard-grid" style="margin-bottom: 2rem;">
+                <!-- Requests by Dept -->
+                <div class="col-span-4"
+                    style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-building"></i> Requests by Department</div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="deptChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Status Dist -->
+                <div class="col-span-4"
+                    style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-chart-pie"></i> Status Distribution</div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="statusChart"></canvas>
+                    </div>
+                </div>
+
+                <!-- Trend -->
+                <div class="col-span-4"
+                    style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-chart-line"></i> Daily Trend</div>
+                    </div>
+                    <div style="height: 250px;">
+                        <canvas id="trendChart"></canvas>
+                    </div>
+                </div>
+            </div>
+
+            <div class="dashboard-grid">
+
+                <!-- SECTION 3: AUTO ASSIGNMENT MONITOR -->
+                <div class="col-span-4"
+                    style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-robot"></i> Auto-Assignment Monitor</div>
+                        <div class="engine-status"><i class="fas fa-circle" style="font-size: 8px;"></i> ACTIVE</div>
+                    </div>
+                    <div style="margin-bottom: 1rem; font-size: 0.85rem; color: #94a3b8;">
+                        <div style="display: flex; flex-direction: column; gap: 0.5rem;">
+                            <div><i class="fas fa-check text-green-500"></i> Dept → Request Type Mapping</div>
+                            <div><i class="fas fa-check text-green-500"></i> Least Workload Balancing</div>
+                            <div><i class="fas fa-check text-green-500"></i> SLA Priority Rules</div>
+                        </div>
+                    </div>
+                    <div class="table-container" style="max-height: 250px; overflow-y: auto; margin:0;">
+                        <table class="monitor-table">
+                            <thead style="background: #0f172a;">
+                                <tr>
+                                    <th style="padding: 0.75rem;">ID</th>
+                                    <th style="padding: 0.75rem;">Type</th>
+                                    <th style="padding: 0.75rem;">Agent</th>
+                                    <th style="padding: 0.75rem;">Load</th>
+                                </tr>
+                            </thead>
+                            <tbody id="assignment-table-body">
+                                <tr>
+                                    <td colspan="4" class="text-center p-4 text-muted">Waiting for stream...</td>
+                                </tr>
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 4: APPROVER PERFORMANCE -->
+                <div class="col-span-4"
+                    style="background: #1e293b; padding: 1.5rem; border-radius: 1rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <div class="section-header">
+                        <div class="section-title"><i class="fas fa-user-clock"></i> Approver Performance</div>
+                    </div>
+                    <div class="table-container" style="max-height: 350px; overflow-y: auto; margin:0;">
+                        <table class="monitor-table">
+                            <thead style="background: #0f172a;">
+                                <tr>
+                                    <th style="padding: 0.75rem;">Agent</th>
+                                    <th style="padding: 0.75rem;">Dept</th>
+                                    <th style="padding: 0.75rem;">Active</th>
+                                    <th style="padding: 0.75rem;">Done</th>
+                                </tr>
+                            </thead>
+                            <tbody id="approver-perf-body">
+                                <!-- JS populated -->
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+
+                <!-- SECTION 5: AUDIT LOGS -->
+                <div class="col-span-4">
+                    <div class="section-header" style="margin-bottom: 0.5rem;">
+                        <div class="section-title"><i class="fas fa-shield-alt"></i> System Audit Logs</div>
+                    </div>
+                    <div class="audit-console" id="audit-console">
+                        <div class="audit-entry">
+                            <span class="audit-time">[SYSTEM]</span>
+                            <span class="audit-action">INIT</span>
+                            Starting audit stream...
+                        </div>
+                    </div>
+                    <!-- Configuration Links -->
+                    <div style="margin-top: 1rem; display: flex; gap: 0.5rem; flex-wrap: wrap;">
+                        <button class="btn"
+                            style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; background: #334155;"><i
+                                class="fas fa-cog"></i> System Config</button>
+                        <button class="btn"
+                            style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; background: #334155;"><i
+                                class="fas fa-users-cog"></i> Roles</button>
+                        <button class="btn"
+                            style="width: auto; padding: 0.5rem 1rem; font-size: 0.8rem; background: #334155;"><i
+                                class="fas fa-file-contract"></i> SLAs</button>
+                    </div>
+                </div>
+
+            </div>
+        </div>
+
+        <!-- VIEW: DEPARTMENTS -->
+        <div id="view-departments" style="display: none; padding: 2rem;">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2 style="color:white; margin-bottom: 0.5rem;">Department Management</h2>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Manage department listings and configurations here.
+                    </p>
+                </div>
+                <button class="btn btn-primary" onclick="AdminDashboard.openDeptModal()"
+                    style="background: #3b82f6; width: auto; padding: 0.75rem 1.5rem;">
+                    <i class="fas fa-plus"></i> Add New Department
+                </button>
+            </div>
+
+            <div class="table-container" style="background: #1e293b; border-radius: 0.5rem; overflow: hidden;">
+                <table class="monitor-table" style="width: 100%;">
+                    <thead style="background: #0f172a;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: left;">ID</th>
+                            <th style="padding: 1rem; text-align: left;">Name</th>
+                            <th style="padding: 1rem; text-align: left;">Description</th>
+                            <th style="padding: 1rem; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="dept-list-body">
+                        <tr>
+                            <td colspan="4" class="text-center p-4 text-muted">Loading departments...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VIEW: USERS -->
+        <div id="view-users" style="display: none; padding: 2rem;">
+            <div class="section-header" style="margin-bottom: 2rem;">
+                <div>
+                    <h2 style="color:white; margin-bottom: 0.5rem;">User Management</h2>
+                    <p style="color: #94a3b8; font-size: 0.9rem;">Manage system users, roles, and permissions.</p>
+                </div>
+                <button class="btn btn-primary" onclick="AdminDashboard.openUserModal()"
+                    style="background: #3b82f6; width: auto; padding: 0.75rem 1.5rem;">
+                    <i class="fas fa-user-plus"></i> Add New User
+                </button>
+            </div>
+
+            <div class="table-container" style="background: #1e293b; border-radius: 0.5rem; overflow: hidden;">
+                <table class="monitor-table" style="width: 100%;">
+                    <thead style="background: #0f172a;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: left;">ID</th>
+                            <th style="padding: 1rem; text-align: left;">Username</th>
+                            <th style="padding: 1rem; text-align: left;">Email</th>
+                            <th style="padding: 1rem; text-align: left;">Role</th>
+                            <th style="padding: 1rem; text-align: left;">Dept</th>
+                            <th style="padding: 1rem; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="user-list-body">
+                        <tr>
+                            <td colspan="6" class="text-center p-4 text-muted">Loading users...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+        <!-- VIEW: APPROVERS -->
+        <!-- VIEW: APPROVERS -->
+        <div id="view-approvers" style="display: none; padding: 2rem;">
+            <div style="display: flex; justify-content: space-between; align-items: center; margin-bottom: 2rem;">
+                <div>
+                    <h2 style="color:white; margin-bottom: 0.5rem;">Approver Management</h2>
+                    <p style="color: #94a3b8;">Manage approvers and their department assignments.</p>
+                </div>
+                <button class="btn btn-primary" onclick="AdminDashboard.openUserModal(null, 'APPROVER')"
+                    style="background: #3b82f6; display: flex; align-items: center; gap: 0.5rem; padding: 0.75rem 1.5rem;">
+                    <i class="fas fa-plus"></i> Add New Approver
+                </button>
+            </div>
+
+            <div class="table-container" style="background: #1e293b; border-radius: 0.5rem; overflow: hidden;">
+                <table class="monitor-table" style="width: 100%;">
+                    <thead style="background: #0f172a;">
+                        <tr>
+                            <th style="padding: 1rem; text-align: left;">ID</th>
+                            <th style="padding: 1rem; text-align: left;">Name</th>
+                            <th style="padding: 1rem; text-align: left;">Email</th>
+                            <th style="padding: 1rem; text-align: left;">Department</th>
+                            <th style="padding: 1rem; text-align: right;">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody id="approver-list-body">
+                        <tr>
+                            <td colspan="5" class="text-center p-4 text-muted">Loading approvers...</td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+
+    </main>
+
+    <!-- Department Modal -->
+    <div id="dept-modal" class="modal">
+        <div class="modal-content"
+            style="background: #1e293b; color: #f8fafc; width: 500px; border: 1px solid rgba(255,255,255,0.1);">
+            <h3 id="dept-modal-title" style="margin-bottom: 1.5rem; font-weight: 700;">Add Department</h3>
+            <form id="dept-form" onsubmit="AdminDashboard.saveDepartment(event)">
+                <input type="hidden" id="dept-id">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Department
+                        Name</label>
+                    <input type="text" id="dept-name" required
+                        style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 2rem;">
+                    <label
+                        style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Description</label>
+                    <textarea id="dept-desc" rows="3"
+                        style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;"></textarea>
+                </div>
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" onclick="document.getElementById('dept-modal').classList.remove('show')"
+                        class="btn"
+                        style="background: transparent; border: 1px solid #475569; color: #cbd5e1; width: auto;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: #3b82f6; width: auto;">Save
+                        Department</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- User Modal -->
+    <div id="user-modal" class="modal">
+        <div class="modal-content"
+            style="background: #1e293b; color: #f8fafc; width: 500px; border: 1px solid rgba(255,255,255,0.1);">
+            <h3 id="user-modal-title" style="margin-bottom: 1.5rem; font-weight: 700;">Add User</h3>
+            <form id="user-form" onsubmit="AdminDashboard.saveUser(event)">
+                <input type="hidden" id="user-id">
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Username</label>
+                    <input type="text" id="user-username" required
+                        style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                </div>
+                <div class="form-group" style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Email</label>
+                    <input type="email" id="user-email" required
+                        style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                </div>
+                <div class="form-group" id="password-group" style="margin-bottom: 1.5rem;">
+                    <label
+                        style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Password</label>
+                    <input type="password" id="user-password"
+                        style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                    <small style="color: #64748b; font-size: 0.8rem; display:block; margin-top: 0.25rem;">Required for
+                        new users.</small>
+                </div>
+
+                <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 2rem;">
+                    <div class="form-group">
+                        <label
+                            style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Role</label>
+                        <select id="user-role" required onchange="AdminDashboard.toggleDeptSelect()"
+                            style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                            <option value="USER">User</option>
+                            <option value="APPROVER">Approver</option>
+                            <option value="ADMIN">Admin</option>
+                        </select>
+                    </div>
+                    <div class="form-group" id="dept-select-group" style="display: none;">
+                        <label
+                            style="display: block; color: #94a3b8; margin-bottom: 0.5rem; font-size: 0.9rem;">Department</label>
+                        <select id="user-dept"
+                            style="width: 100%; background: #0f172a; border: 1px solid #334155; padding: 0.75rem; color: white; border-radius: 0.375rem;">
+                            <!-- Populated by JS -->
+                        </select>
+                    </div>
+                </div>
+
+                <div style="display: flex; justify-content: flex-end; gap: 1rem;">
+                    <button type="button" onclick="document.getElementById('user-modal').classList.remove('show')"
+                        class="btn"
+                        style="background: transparent; border: 1px solid #475569; color: #cbd5e1; width: auto;">Cancel</button>
+                    <button type="submit" class="btn btn-primary" style="background: #3b82f6; width: auto;">Save
+                        User</button>
+                </div>
+            </form>
+        </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="confirm-title" id="confirm-title">Are you sure?</div>
+            <div class="confirm-text" id="confirm-text">This action cannot be undone.</div>
+            <div class="confirm-actions">
+                <button id="confirm-cancel" class="btn"
+                    style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+                <button id="confirm-proceed" class="btn" style="background: #3b82f6; color: white;">Confirm</button>
+            </div>
+        </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" onclick="AdminDashboard.switchView('dashboard')">
+                <i class="fas fa-th-large"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('departments')">
+                <i class="fas fa-building"></i>
+                <span>Departments</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('users')">
+                <i class="fas fa-users"></i>
+                <span>Users</span>
+            </a>
+            <a href="#" class="nav-item" onclick="AdminDashboard.switchView('approvers')">
+                <i class="fas fa-user-check"></i>
+                <span>Approvers</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="js/common.js"></script>
+    <script src="js/admin-dashboard.js"></script>
+</body>
+
+</html>

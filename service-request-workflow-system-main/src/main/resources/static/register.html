@@ -1,0 +1,388 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Register - Service Request Workflow Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Specific overrides for the split auth layout (shared with login.html) */
+        body {
+            background: #fff;
+            color: #1e293b;
+            display: block;
+            min-height: 100vh;
+        }
+
+        .login-wrapper {
+            display: flex;
+            min-height: 100vh;
+            width: 100%;
+        }
+
+        /* Left Side - Branding */
+        .brand-section {
+            flex: 1;
+            background-color: #0f172a;
+            color: white;
+            padding: 4rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+            position: relative;
+            overflow: hidden;
+        }
+
+        /* Abstract Diagram Circles */
+        .diagram-container {
+            position: relative;
+            height: 200px;
+            margin-bottom: 2rem;
+        }
+
+        .node {
+            width: 60px;
+            height: 40px;
+            border: 2px solid;
+            border-radius: 8px;
+            position: absolute;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+        }
+
+        .node-dot {
+            width: 12px;
+            height: 12px;
+            border-radius: 50%;
+        }
+
+        /* Branding Text */
+        .brand-section h1 {
+            font-size: 3.5rem;
+            line-height: 1.1;
+            margin-bottom: 1.5rem;
+            font-weight: 800;
+        }
+
+        .brand-section p {
+            color: #94a3b8;
+            font-size: 1.1rem;
+            margin-bottom: 2rem;
+            max-width: 500px;
+        }
+
+        .feature-list {
+            list-style: none;
+        }
+
+        .feature-list li {
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            font-size: 1rem;
+            color: #cbd5e1;
+        }
+
+        .feature-list i {
+            margin-right: 10px;
+            color: #38bdf8;
+        }
+
+        /* Right Side - Form */
+        .form-section {
+            flex: 1;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 1rem;
+            /* Reduced padding for register form height */
+            background: #f8fafc;
+            overflow-y: auto;
+            /* Handle smaller screens/tall form */
+        }
+
+        .login-card-custom {
+            width: 100%;
+            max-width: 480px;
+            /* Slightly wider for form clarity */
+            background: white;
+            padding: 2.5rem;
+            border-radius: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1), 0 2px 4px -1px rgba(0, 0, 0, 0.06);
+            margin: 2rem 0;
+        }
+
+        .login-header {
+            text-align: center;
+            margin-bottom: 1.5rem;
+        }
+
+        .login-header h2 {
+            font-size: 1.8rem;
+            color: #1e293b;
+            font-weight: 700;
+            margin-bottom: 0.5rem;
+        }
+
+        .login-header p {
+            color: #64748b;
+            font-size: 0.95rem;
+        }
+
+        .custom-input,
+        .custom-select {
+            background: #f1f5f9 !important;
+            border: 1px solid #e2e8f0 !important;
+            color: #334155 !important;
+            border-radius: 0.5rem;
+            padding: 0.75rem 1rem;
+            width: 100%;
+        }
+
+        .custom-input:focus,
+        .custom-select:focus {
+            background: white !important;
+            border-color: #6366f1 !important;
+            box-shadow: 0 0 0 3px rgba(99, 102, 241, 0.1) !important;
+            outline: none;
+        }
+
+        .custom-label {
+            color: #475569 !important;
+            font-weight: 500;
+            font-size: 0.875rem;
+            margin-bottom: 0.5rem;
+            display: block;
+        }
+
+        .btn-primary {
+            background: #6366f1;
+            border: none;
+            padding: 0.75rem;
+            font-weight: 600;
+            border-radius: 0.5rem;
+            width: 100%;
+            color: white;
+            cursor: pointer;
+            transition: background 0.2s;
+        }
+
+        .btn-primary:hover {
+            background: #4f46e5;
+        }
+
+        /* Mobile Responsive */
+        @media (max-width: 900px) {
+            .login-wrapper {
+                flex-direction: column;
+            }
+
+            .brand-section {
+                padding: 3rem 2rem;
+                min-height: 250px;
+                flex: 0 0 auto;
+            }
+
+            .brand-section h1 {
+                font-size: 2rem;
+            }
+
+            .diagram-container {
+                display: none;
+            }
+
+            .form-section {
+                padding: 1rem;
+                align-items: flex-start;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+    <div class="login-wrapper">
+        <!-- Left Side: Brand -->
+        <div class="brand-section">
+            <div style="color: #38bdf8; font-weight: 700; margin-bottom: 1rem; letter-spacing: 1px;">Service Request
+                Workflow Portal</div>
+
+            <!-- Abstract Diagram -->
+            <!-- AI Generated Hero Image -->
+            <div class="diagram-container"
+                style="height: auto; margin-bottom: 2rem; display: flex; justify-content: center;">
+                <img src="images/workflow_auth_hero.png" alt="Service Workflow Visualization"
+                    style="width: 100%; max-width: 400px; border-radius: 12px; box-shadow: 0 10px 25px rgba(0,0,0,0.5); border: 1px solid rgba(255,255,255,0.1);">
+            </div>
+
+            <h1>Join the<br>Workflow<br>Revolution</h1>
+            <p>Create an account to submit requests, track progress, and collaborate efficiently.</p>
+
+            <ul class="feature-list">
+                <li><i class="fas fa-user-plus"></i> Quick and easy registration</li>
+                <li><i class="fas fa-shield-alt"></i> Secure role-based access</li>
+                <li><i class="fas fa-bell"></i> Instant notifications</li>
+            </ul>
+        </div>
+
+        <!-- Right Side: Form -->
+        <div class="form-section">
+            <div class="login-card-custom">
+                <div class="login-header">
+                    <h2>Create Account</h2>
+                    <p>Enter your details below to get started.</p>
+                </div>
+
+                <form id="registerForm">
+                    <div id="error-message" class="error-msg hidden"
+                        style="background: #fee2e2; color: #b91c1c; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; font-size: 0.9rem;">
+                    </div>
+                    <div id="success-message" class="error-msg hidden"
+                        style="background: #dcfce7; color: #15803d; padding: 0.75rem; border-radius: 0.5rem; margin-bottom: 1rem; text-align: center; font-size: 0.9rem;">
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="custom-label">Username</label>
+                        <input type="text" class="custom-input" id="username" placeholder="johndoe" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="custom-label">Email Address</label>
+                        <input type="email" class="custom-input" id="email" placeholder="john@example.com" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="custom-label">Password</label>
+                        <input type="password" class="custom-input" id="password" placeholder="••••••••" required>
+                    </div>
+
+                    <div class="form-group" style="margin-bottom: 1rem;">
+                        <label class="custom-label">Role</label>
+                        <select class="custom-select" id="role" onchange="handleRoleChange()">
+                            <option value="user">User</option>
+                            <option value="approver">Approver</option>
+                            <option value="manager">Manager</option>
+                            <option value="admin">Admin</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group hidden" id="dept-group" style="margin-bottom: 1rem;">
+                        <label class="custom-label">Department</label>
+                        <select class="custom-select" id="department">
+                            <option value="">Select Department</option>
+                        </select>
+                    </div>
+
+                    <div class="form-group hidden" id="admin-secret-group" style="margin-bottom: 1.5rem;">
+                        <label class="custom-label">Admin Secret Key</label>
+                        <input type="password" class="custom-input" id="adminSecret" placeholder="Enter secret key">
+                    </div>
+
+                    <button type="submit" class="btn btn-primary">Sign Up</button>
+
+                    <div style="margin-top: 1.5rem; text-align: center; color: #64748b; font-size: 0.875rem;">
+                        Already have an account? <a href="login.html"
+                            style="color: #6366f1; font-weight: 600; text-decoration: none;">Sign in</a>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+
+    <script src="js/common.js"></script>
+    <script>
+        async function loadDepartments() {
+            const deptSelect = document.getElementById('department');
+            try {
+               const response = await fetch('https://service-request-workflow-system-1.onrender.com/api/common/departments');
+                if (response.ok) {
+                    const depts = await response.json();
+                    depts.forEach(d => {
+                        const option = document.createElement('option');
+                        option.value = d.id;
+                        option.textContent = d.name;
+                        deptSelect.appendChild(option);
+                    });
+                }
+            } catch (e) {
+                console.error("Failed to load departments", e);
+            }
+        }
+
+        // Load depts on page load
+        loadDepartments();
+
+        function handleRoleChange() {
+            const role = document.getElementById('role').value;
+            const deptGroup = document.getElementById('dept-group');
+            const adminGroup = document.getElementById('admin-secret-group');
+
+            deptGroup.classList.add('hidden');
+            adminGroup.classList.add('hidden');
+
+            if (role === 'approver') {
+                deptGroup.classList.remove('hidden');
+            } else if (role === 'admin') {
+                adminGroup.classList.remove('hidden');
+            }
+        }
+
+        document.getElementById('registerForm').addEventListener('submit', async (e) => {
+            e.preventDefault();
+            const username = document.getElementById('username').value;
+            const email = document.getElementById('email').value;
+            const password = document.getElementById('password').value;
+            const role = document.getElementById('role').value;
+            const departmentId = document.getElementById('department').value;
+            const adminSecret = document.getElementById('adminSecret').value;
+
+            const errorDiv = document.getElementById('error-message');
+            const successDiv = document.getElementById('success-message');
+            const btn = e.target.querySelector('button');
+
+            errorDiv.classList.add('hidden');
+            successDiv.classList.add('hidden');
+
+            // Client side validation
+            if (role === 'approver' && !departmentId) {
+                showErrorToast('Please select a department for approver role.');
+                return;
+            }
+            if (role === 'admin' && !adminSecret) {
+                showErrorToast('Admin Secret Key is required for admin role.');
+                return;
+            }
+
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin"></i> Creating Account...';
+
+            const payload = {
+                username,
+                email,
+                password,
+                role,
+                departmentId: role === 'approver' ? departmentId : null,
+                adminSecret: role === 'admin' ? adminSecret : null
+            };
+
+            try {
+                const data = await API.post('/auth/signup', payload, false);
+                showSuccessToast('Registration successful!');
+                setTimeout(() => {
+                    window.location.href = 'login.html';
+                }, 1500);
+            } catch (err) {
+                showErrorToast(err.message || 'Registration failed.');
+                btn.disabled = false;
+                btn.innerText = 'Sign Up';
+            }
+        });
+    </script>
+</body>
+
+</html>

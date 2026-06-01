@@ -1,0 +1,424 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Request - Service Portal</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <link rel="stylesheet"
+        href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        :root {
+            --bg-user: #0f172a;
+            --nav-user: rgba(15, 23, 42, 0.95);
+            --text-user: #f8fafc;
+            --card-bg: #1e293b;
+            --border-color: rgba(255, 255, 255, 0.05);
+            --text-muted: #94a3b8;
+            --input-bg: #0f172a;
+            --input-border: #334155;
+        }
+
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body.user-theme {
+            background: var(--bg-user);
+            color: var(--text-user);
+            font-family: Arial, sans-serif;
+            min-height: 100vh;
+        }
+
+        .top-navbar {
+            background: var(--nav-user);
+            border-bottom: 1px solid var(--border-color);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+        }
+
+        .form-card {
+            background: var(--card-bg);
+            border-radius: 12px;
+            max-width: 800px;
+            margin: 2rem auto;
+            overflow: hidden;
+            box-shadow: 0 10px 30px rgba(0,0,0,0.3);
+        }
+
+        .form-header {
+            padding: 1.5rem 2rem;
+            border-bottom: 1px solid var(--border-color);
+        }
+
+        .form-body {
+            padding: 2rem;
+        }
+
+        .form-group {
+            margin-bottom: 1.5rem;
+        }
+
+        .form-label {
+            display: block;
+            margin-bottom: 0.5rem;
+            color: var(--text-muted);
+            font-size: 14px;
+        }
+
+        .form-control {
+            width: 100%;
+            padding: 0.9rem;
+            border-radius: 8px;
+            border: 1px solid var(--input-border);
+            background: var(--input-bg);
+            color: white;
+            font-size: 15px;
+        }
+
+        .form-control:focus {
+            outline: none;
+            border-color: #3b82f6;
+        }
+
+        textarea.form-control {
+            resize: vertical;
+        }
+
+        .btn {
+            width: 100%;
+            padding: 1rem;
+            border-radius: 8px;
+            cursor: pointer;
+            border: none;
+            background: #3b82f6;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            transition: 0.3s;
+        }
+
+        .btn:hover {
+            background: #2563eb;
+        }
+
+        @media (max-width: 768px) {
+
+            .top-navbar {
+                padding: 0 1rem;
+            }
+
+            .form-card {
+                margin: 1rem;
+            }
+
+            .form-body {
+                padding: 1.5rem;
+            }
+        }
+    </style>
+</head>
+
+<body class="user-theme">
+
+    <nav class="top-navbar">
+
+        <div>
+            <a href="user-dashboard.html"
+                style="text-decoration:none;color:white;font-size:20px;font-weight:bold;">
+                ← New Request
+            </a>
+        </div>
+
+        <div id="user-name">User</div>
+
+    </nav>
+
+    <main style="padding:2rem;">
+
+        <div class="form-card">
+
+            <div class="form-header">
+                <h2>Request Details</h2>
+            </div>
+
+            <div class="form-body">
+
+                <form id="createRequestForm">
+
+                    <div class="form-group">
+
+                        <label class="form-label">Title</label>
+
+                        <input
+                            type="text"
+                            id="req-title"
+                            class="form-control"
+                            required>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">Department</label>
+
+                        <select
+                            id="req-dept"
+                            class="form-control"
+                            required>
+
+                            <option value="">Select Department</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">Request Type</label>
+
+                        <select
+                            id="req-type"
+                            class="form-control"
+                            required>
+
+                            <option value="">Select Type</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">Priority</label>
+
+                        <select
+                            id="req-priority"
+                            class="form-control">
+
+                            <option value="LOW">LOW</option>
+                            <option value="MEDIUM">MEDIUM</option>
+                            <option value="HIGH">HIGH</option>
+                            <option value="CRITICAL">CRITICAL</option>
+
+                        </select>
+
+                    </div>
+
+                    <div class="form-group">
+
+                        <label class="form-label">Description</label>
+
+                        <textarea
+                            id="req-desc"
+                            rows="6"
+                            class="form-control"
+                            required></textarea>
+
+                    </div>
+
+                    <button
+                        type="submit"
+                        class="btn">
+
+                        Submit Request
+
+                    </button>
+
+                </form>
+
+            </div>
+
+        </div>
+
+    </main>
+
+<script>
+
+const token = localStorage.getItem("token");
+
+if (!token) {
+    window.location.href = "login.html";
+}
+
+const user =
+    JSON.parse(localStorage.getItem("user"));
+
+if (user) {
+    document.getElementById("user-name").innerText =
+        user.username;
+}
+
+async function loadDepartments() {
+
+    try {
+
+        const response = await fetch(
+            "https://service-request-workflow-system-1.onrender.com/api/departments",
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            console.error("Department API Error");
+
+            return;
+        }
+
+        const depts = await response.json();
+
+        console.log(depts);
+
+        const deptSelect =
+            document.getElementById("req-dept");
+
+        deptSelect.innerHTML =
+            '<option value="">Select Department</option>';
+
+        if (Array.isArray(depts)) {
+
+            depts.forEach(dept => {
+
+                deptSelect.innerHTML += `
+                    <option value="${dept.id}">
+                        ${dept.name}
+                    </option>
+                `;
+            });
+        }
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+async function loadRequestTypes() {
+
+    try {
+
+        const response = await fetch(
+            "https://service-request-workflow-system-1.onrender.com/api/request-types/all",
+            {
+                headers: {
+                    "Authorization": `Bearer ${token}`
+                }
+            }
+        );
+
+        if (!response.ok) {
+
+            console.error("Request Type API Error");
+
+            return;
+        }
+
+        const types = await response.json();
+
+        console.log(types);
+
+        const typeSelect =
+            document.getElementById("req-type");
+
+        typeSelect.innerHTML =
+            '<option value="">Select Type</option>';
+
+        if (Array.isArray(types)) {
+
+            types.forEach(type => {
+
+                typeSelect.innerHTML += `
+                    <option value="${type.id}">
+                        ${type.name}
+                    </option>
+                `;
+            });
+        }
+
+    } catch (err) {
+
+        console.error(err);
+    }
+}
+
+document
+.getElementById("createRequestForm")
+.addEventListener("submit", async function(e) {
+
+    e.preventDefault();
+
+    const payload = {
+
+        title:
+            document.getElementById("req-title").value,
+
+        description:
+            document.getElementById("req-desc").value,
+
+        departmentId:
+            parseInt(
+                document.getElementById("req-dept").value
+            ),
+
+        requestTypeId:
+            parseInt(
+                document.getElementById("req-type").value
+            ),
+
+        priority:
+            document.getElementById("req-priority").value
+    };
+
+    try {
+
+        const response = await fetch(
+            "https://service-request-workflow-system-1.onrender.com/api/requests",
+            {
+                method: "POST",
+
+                headers: {
+                    "Content-Type": "application/json",
+                    "Authorization": `Bearer ${token}`
+                },
+
+                body: JSON.stringify(payload)
+            }
+        );
+
+        const data = await response.json();
+
+        if (response.ok) {
+            showSuccessToast("Request Created Successfully");
+            setTimeout(() => {
+                window.location.href = "user-dashboard.html";
+            }, 1000);
+        } else {
+            showErrorToast(data.message || "Failed");
+        }
+    } catch (err) {
+        console.error(err);
+        showErrorToast("Server Error");
+    }
+});
+
+loadDepartments();
+loadRequestTypes();
+
+</script>
+
+</body>
+</html>
