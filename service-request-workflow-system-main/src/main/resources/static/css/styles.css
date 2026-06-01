@@ -628,7 +628,7 @@ tr:hover td {
 }
 
 .desktop-only {
-    display: block !important;
+    /* Let the element use its native or inline display property on desktop */
 }
 
 /* TABLET (Max Width 1024px) */
