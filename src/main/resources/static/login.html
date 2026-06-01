@@ -1,0 +1,309 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Login - Service Portal</title>
+
+    <link rel="stylesheet" href="css/styles.css">
+
+    <style>
+        body {
+            margin: 0;
+            font-family: Arial, sans-serif;
+            background: #f8fafc;
+        }
+
+        .login-wrapper {
+            display: flex;
+            min-height: 100vh;
+        }
+
+        .brand-section {
+            flex: 1;
+            background: #0f172a;
+            color: white;
+            padding: 60px;
+            display: flex;
+            flex-direction: column;
+            justify-content: center;
+        }
+
+        .brand-section h1 {
+            font-size: 56px;
+            line-height: 1.1;
+            margin-bottom: 20px;
+        }
+
+        .brand-section p {
+            color: #cbd5e1;
+            font-size: 18px;
+        }
+
+        .form-section {
+            flex: 1;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            padding: 40px;
+        }
+
+        .login-card {
+            width: 100%;
+            max-width: 420px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 4px 20px rgba(0,0,0,0.08);
+        }
+
+        .login-card h2 {
+            text-align: center;
+            margin-bottom: 10px;
+            color: #1e293b;
+        }
+
+        .login-card p {
+            text-align: center;
+            color: #64748b;
+            margin-bottom: 30px;
+        }
+
+        .form-group {
+            margin-bottom: 20px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #334155;
+            font-weight: 600;
+        }
+
+        .form-group input {
+            width: 100%;
+            padding: 14px;
+            border: 1px solid #cbd5e1;
+            border-radius: 10px;
+            font-size: 15px;
+            box-sizing: border-box;
+        }
+
+        .btn-login {
+            width: 100%;
+            padding: 14px;
+            border: none;
+            border-radius: 10px;
+            background: #6366f1;
+            color: white;
+            font-size: 16px;
+            font-weight: bold;
+            cursor: pointer;
+        }
+
+        .btn-login:hover {
+            background: #4f46e5;
+        }
+
+        .error-msg {
+            background: #fee2e2;
+            color: #dc2626;
+            padding: 10px;
+            border-radius: 8px;
+            margin-bottom: 15px;
+            text-align: center;
+        }
+
+        .hidden {
+            display: none;
+        }
+
+        .register-link {
+            text-align: center;
+            margin-top: 20px;
+        }
+
+        .register-link a {
+            color: #6366f1;
+            text-decoration: none;
+            font-weight: bold;
+        }
+
+        @media(max-width: 900px) {
+            .login-wrapper {
+                flex-direction: column;
+            }
+
+            .brand-section {
+                padding: 40px 20px;
+            }
+
+            .brand-section h1 {
+                font-size: 40px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+
+<div class="login-wrapper">
+
+    <!-- LEFT SIDE -->
+    <div class="brand-section">
+
+        <h1>
+            Service Request <br>
+            Workflow <br>
+            Automation
+        </h1>
+
+        <p>
+            Simplifying service requests with secure approvals
+            and real-time tracking.
+        </p>
+
+    </div>
+
+    <!-- RIGHT SIDE -->
+    <div class="form-section">
+
+        <div class="login-card">
+
+            <h2>Welcome Back</h2>
+
+            <p>Please enter your details to sign in.</p>
+
+            <form id="loginForm">
+
+                <div id="error-msg" class="error-msg hidden"></div>
+
+                <div class="form-group">
+                    <label>Username</label>
+
+                    <input
+                            type="text"
+                            id="username"
+                            placeholder="Enter username"
+                            required
+                    >
+                </div>
+
+                <div class="form-group">
+                    <label>Password</label>
+
+                    <input
+                            type="password"
+                            id="password"
+                            placeholder="Enter password"
+                            required
+                    >
+                </div>
+
+                <button type="submit" class="btn-login">
+                    Sign In
+                </button>
+
+                <div class="register-link">
+                    Don't have an account?
+                    <a href="register.html">Sign Up</a>
+                </div>
+
+            </form>
+
+        </div>
+
+    </div>
+
+</div>
+
+<script src="js/common.js"></script>
+
+<script>
+
+document.getElementById('loginForm')
+.addEventListener('submit', async (e) => {
+
+    e.preventDefault();
+
+    const username =
+        document.getElementById('username').value;
+
+    const password =
+        document.getElementById('password').value;
+
+    const errorDiv =
+        document.getElementById('error-msg');
+
+    try {
+
+        const response = await fetch(
+            `${API_BASE_URL}/auth/signin`,
+            {
+                method: 'POST',
+
+                headers: {
+                    'Content-Type': 'application/json'
+                },
+
+                body: JSON.stringify({
+                    username,
+                    password
+                })
+            }
+        );
+
+        if (response.ok) {
+
+            const data = await response.json();
+
+            Auth.saveToken(data.token, data);
+
+            if (data.roles.includes('ROLE_ADMIN')) {
+
+                window.location.href =
+                    'admin-dashboard.html';
+
+            } else if (
+                data.roles.includes('ROLE_APPROVER')
+            ) {
+
+                window.location.href =
+                    'approver-dashboard.html';
+
+            } else if (
+                data.roles.includes('ROLE_MANAGER')
+            ) {
+
+                window.location.href =
+                    'manager-dashboard.html';
+
+            } else {
+
+                window.location.href =
+                    'user-dashboard.html';
+            }
+
+        } else {
+
+            const err = await response.json();
+
+            throw new Error(
+                err.message || 'Invalid credentials'
+            );
+        }
+
+    } catch (error) {
+
+        errorDiv.innerText = error.message;
+
+        errorDiv.classList.remove('hidden');
+    }
+
+});
+
+</script>
+
+</body>
+</html>
