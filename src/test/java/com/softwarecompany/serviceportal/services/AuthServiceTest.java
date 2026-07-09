@@ -36,7 +36,7 @@ class AuthServiceTest {
     private PasswordEncoder encoder;
 
     @Mock
-    private JavaMailSender mailSender;
+    private EmailService emailService;
 
     @BeforeEach
     void setUp() {
@@ -64,7 +64,7 @@ class AuthServiceTest {
         assertEquals(200, response.getStatusCode().value());
         assertTrue(((MessageResponse) response.getBody()).getMessage().contains("User registered successfully"));
         verify(userRepository, times(1)).save(any(User.class));
-        verify(mailSender, times(1)).send(any(org.springframework.mail.SimpleMailMessage.class));
+        verify(emailService, times(1)).sendVerificationEmail(eq("test@example.com"), eq("testuser"), anyString());
     }
 
     @Test

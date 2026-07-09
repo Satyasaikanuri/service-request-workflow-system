@@ -49,7 +49,7 @@ public class AuthService {
     JwtUtils jwtUtils;
 
     @Autowired
-    private org.springframework.mail.javamail.JavaMailSender mailSender;
+    private EmailService emailService;
 
     @Value("${app.base-url}")
     private String baseUrl;
@@ -229,33 +229,13 @@ public class AuthService {
         userRepository.save(user);
 
         // Send email
-        sendVerificationEmail(user);
+        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), user.getVerificationToken());
 
         return ResponseEntity.ok(
                 new MessageResponse(
                         "User registered successfully! Please check your email to verify your account."
                 )
         );
-    }
-
-    private void sendVerificationEmail(User user) {
-        String token = user.getVerificationToken();
-        String verifyUrl = baseUrl + "/api/auth/verify?token=" + token;
-
-        try {
-            org.springframework.mail.SimpleMailMessage message = new org.springframework.mail.SimpleMailMessage();
-            message.setTo(user.getEmail());
-            message.setSubject("Service Portal - Email Verification");
-            message.setText("Welcome to Service Portal! Please verify your email by clicking the link below:\n\n"
-                    + verifyUrl + "\n\n"
-                    + "If you did not request this registration, please ignore this email.");
-            mailSender.send(message);
-            System.out.println("Verification email successfully sent to: " + user.getEmail());
-        } catch (Exception e) {
-            System.err.println("WARNING: Failed to send verification email to: " + user.getEmail());
-            System.err.println("Verification Link: " + verifyUrl);
-            e.printStackTrace();
-        }
     }
 
     public ResponseEntity<?> verifyUser(String token) {

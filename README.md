@@ -41,6 +41,25 @@ mvn spring-boot:run
 | `SMTP_USERNAME` | SMTP account username | `your-smtp-username` |
 | `SMTP_PASSWORD` | SMTP account password | `your-smtp-password` |
 
+## Email Verification & Gmail SMTP Integration
+
+This application implements a secure email verification workflow. New registrations generate a secure, single-use token (UUID) and set `emailVerified = false` in the database. Users must click the verification link in their email to activate their account before they can login.
+
+### How to Generate a Gmail App Password
+To use Gmail SMTP in production, you must use a Google App Password rather than your primary account password:
+1. Go to your **Google Account Settings** -> **Security**.
+2. Enable **2-Step Verification** (required for App Passwords).
+3. Search for **App Passwords** or navigate to the App Passwords section.
+4. Select **Other (custom name)** and enter a name (e.g., `Service Portal`).
+5. Click **Generate** and copy the 16-character password shown.
+
+### Required Production Environment Variables
+Configure the following variables in your Render environment configurations:
+* `SMTP_HOST`: `smtp.gmail.com`
+* `SMTP_PORT`: `587`
+* `SMTP_USERNAME`: `your-email@gmail.com`
+* `SMTP_PASSWORD`: `your-16-character-app-password`
+
 ## Architecture
 This project uses a layered architecture separating repositories, models, services, and REST controllers. Authentication is stateless, managed using JWTs passed in requests. Security is enforced method-by-method in Spring Security using RBAC permissions. Business logic like SLA timing breaches runs on background schedules.
 A detailed ERD and overview can be found in [docs/architecture.md](docs/architecture.md).
