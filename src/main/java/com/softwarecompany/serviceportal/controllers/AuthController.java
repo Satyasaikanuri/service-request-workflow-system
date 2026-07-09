@@ -2,6 +2,7 @@ package com.softwarecompany.serviceportal.controllers;
 
 import com.softwarecompany.serviceportal.dtos.LoginRequest;
 import com.softwarecompany.serviceportal.dtos.SignupRequest;
+import com.softwarecompany.serviceportal.dtos.MessageResponse;
 import com.softwarecompany.serviceportal.services.AuthService;
 import jakarta.validation.Valid;
 import org.springframework.beans.factory.annotation.Autowired;
