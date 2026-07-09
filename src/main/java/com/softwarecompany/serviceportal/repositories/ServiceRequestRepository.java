@@ -9,6 +9,12 @@ import java.util.List;
 
 @Repository
 public interface ServiceRequestRepository extends JpaRepository<ServiceRequest, Long>, JpaSpecificationExecutor<ServiceRequest> {
+        List<ServiceRequest> findByUserId(Long userId);
+
+        List<ServiceRequest> findByDepartmentId(Long departmentId);
+
+        List<ServiceRequest> findByAssignedAgentId(Long agentId);
+
         List<ServiceRequest> findByUserIdAndDeletedAtIsNull(Long userId);
 
         List<ServiceRequest> findByDepartmentIdAndDeletedAtIsNull(Long departmentId);
