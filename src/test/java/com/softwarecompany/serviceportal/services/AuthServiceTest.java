@@ -56,8 +56,8 @@ class AuthServiceTest {
         when(encoder.encode("password")).thenReturn("hashedPassword");
 
         Role role = new Role();
-        role.setName(Role.RoleName.ROLE_USER);
-        when(roleRepository.findByName(Role.RoleName.ROLE_USER)).thenReturn(Optional.of(role));
+        role.setName(Role.RoleName.USER);
+        when(roleRepository.findByName(Role.RoleName.USER)).thenReturn(Optional.of(role));
 
         ResponseEntity<?> response = authService.registerUser(signupRequest);
 
