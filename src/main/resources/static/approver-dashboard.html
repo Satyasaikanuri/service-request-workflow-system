@@ -1,0 +1,891 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Approver Workspace - Service Portal</title>
+    <link rel="stylesheet" href="css/styles.css">
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <!-- Chart.js -->
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <!-- SweetAlert2 -->
+    <script src="https://cdn.jsdelivr.net/npm/sweetalert2@11"></script>
+    <style>
+        /* Shared Dashboard Dark Theme Styles (matching Admin) */
+
+        .top-navbar {
+            background: rgba(15, 23, 42, 0.95);
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            padding: 0 2rem;
+            height: 64px;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            position: sticky;
+            top: 0;
+            z-index: 50;
+            backdrop-filter: blur(10px);
+        }
+
+        .main-content {
+            background: #0f172a;
+            /* Deep dark background */
+            min-height: calc(100vh - 64px);
+            padding: 2rem;
+            color: #f8fafc;
+        }
+
+        .section-title {
+            font-size: 1.125rem;
+            font-weight: 600;
+            color: #f1f5f9;
+            margin-bottom: 1rem;
+            display: flex;
+            align-items: center;
+            gap: 0.5rem;
+        }
+
+        /* KPI Cards (matching Admin) */
+        .stats-grid-approver {
+            display: grid;
+            grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+            gap: 1.5rem;
+            margin-bottom: 2rem;
+        }
+
+        .kpi-card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.25rem;
+            display: flex;
+            flex-direction: column;
+            justify-content: space-between;
+            position: relative;
+            overflow: hidden;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+        }
+
+        .kpi-card::after {
+            content: '';
+            position: absolute;
+            bottom: 0;
+            left: 0;
+            height: 3px;
+            width: 100%;
+            background: linear-gradient(90deg, transparent, rgba(255, 255, 255, 0.1), transparent);
+        }
+
+        .kpi-card .value {
+            font-size: 2rem;
+            font-weight: 700;
+            color: #f8fafc;
+        }
+
+        .kpi-card .label {
+            font-size: 0.875rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            margin-bottom: 0.5rem;
+        }
+
+        /* Card Container (Standard) */
+        .card {
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            border-radius: 0.75rem;
+            padding: 1.5rem;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            color: #f8fafc;
+        }
+
+        /* Table Styles (Dark) */
+        .table-container {
+            background: #1e293b;
+            border-radius: 0.75rem;
+            border: 1px solid rgba(255, 255, 255, 0.05);
+            overflow: hidden;
+        }
+
+        .approver-table {
+            width: 100%;
+            border-collapse: collapse;
+        }
+
+        .approver-table th {
+            position: sticky;
+            top: 0;
+            z-index: 10;
+            background: #0f172a;
+            color: #94a3b8;
+            font-weight: 600;
+            font-size: 0.85rem;
+            padding: 1rem;
+            text-align: left;
+            text-transform: uppercase;
+            letter-spacing: 0.05em;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+        }
+
+        .approver-table td {
+            background: rgba(30, 41, 59, 0.4);
+            color: #e2e8f0;
+            padding: 1rem;
+            border-bottom: 1px solid rgba(255, 255, 255, 0.05);
+            font-size: 0.9rem;
+        }
+
+        .approver-table tbody tr:hover td {
+            background: rgba(255, 255, 255, 0.05);
+        }
+
+        /* Modal (Dark) */
+        .modal {
+            display: none;
+            position: fixed;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: rgba(0, 0, 0, 0.7);
+            backdrop-filter: blur(5px);
+            z-index: 1000;
+            justify-content: center;
+            align-items: center;
+        }
+
+        /* Modal Content specific override */
+        .modal-content-approver {
+            background: #1e293b;
+            color: #f1f5f9;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        /* Audits */
+        .audit-list {
+            margin-top: 1rem;
+            border-left: 2px solid #334155;
+            padding-left: 1rem;
+        }
+
+        .audit-item {
+            margin-bottom: 1rem;
+            font-size: 0.85rem;
+            color: #cbd5e1;
+        }
+
+        .audit-item .timestamp {
+            color: #64748b;
+            display: block;
+            font-size: 0.75rem;
+            margin-bottom: 0.2rem;
+        }
+
+        /* Badge/SLA */
+        .sla-badge {
+            font-family: 'Courier New', monospace;
+            font-weight: 700;
+            padding: 0.25rem 0.5rem;
+            border-radius: 4px;
+            background: #334155;
+            color: #e2e8f0;
+        }
+
+        .sla-danger {
+            background: rgba(239, 68, 68, 0.2);
+            color: #fca5a5;
+        }
+
+        .sla-warning {
+            background: rgba(245, 158, 11, 0.2);
+            color: #fcd34d;
+        }
+
+        .sla-safe {
+            background: rgba(16, 185, 129, 0.2);
+            color: #6ee7b7;
+        }
+
+        /* Scrollbar */
+        ::-webkit-scrollbar {
+            width: 8px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: #0f172a;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: #334155;
+            border-radius: 4px;
+        }
+
+        ::-webkit-scrollbar-thumb:hover {
+            background: #475569;
+        }
+
+        /* Form Inputs in Modal */
+        .form-control-dark {
+            background: #0f172a !important;
+            border: 1px solid #334155 !important;
+            color: #f1f5f9 !important;
+        }
+
+        /* Confirmation Modal Specific */
+        .confirm-modal-content {
+            width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 1rem;
+            padding: 2rem;
+            text-align: center;
+            box-shadow: 0 25px 50px -12px rgba(0, 0, 0, 0.5);
+        }
+
+        .confirm-icon {
+            width: 64px;
+            height: 64px;
+            background: rgba(245, 158, 11, 0.1);
+            color: #f59e0b;
+            border-radius: 50%;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            font-size: 1.75rem;
+            margin: 0 auto 1.5rem;
+        }
+
+        .confirm-title {
+            font-size: 1.25rem;
+            font-weight: 700;
+            color: #f1f5f9;
+            margin-bottom: 0.75rem;
+        }
+
+        .confirm-text {
+            color: #94a3b8;
+            font-size: 0.95rem;
+            line-height: 1.5;
+            margin-bottom: 2rem;
+        }
+
+        .confirm-actions {
+            display: flex;
+            gap: 1rem;
+        }
+
+        .confirm-actions .btn {
+            flex: 1;
+            padding: 0.75rem;
+            font-weight: 600;
+        }
+
+        /* Toast Notifications */
+        #toast-container {
+            position: fixed;
+            top: 1.5rem;
+            right: 1.5rem;
+            z-index: 2000;
+            display: flex;
+            flex-direction: column;
+            gap: 0.75rem;
+            pointer-events: none;
+        }
+
+        .toast {
+            min-width: 300px;
+            max-width: 400px;
+            background: #1e293b;
+            border: 1px solid rgba(255, 255, 255, 0.1);
+            border-radius: 0.75rem;
+            padding: 1rem 1.25rem;
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            box-shadow: 0 10px 15px -3px rgba(0, 0, 0, 0.2);
+            color: #f1f5f9;
+            pointer-events: auto;
+            animation: toast-in 0.3s cubic-bezier(0.16, 1, 0.3, 1);
+            border-left: 4px solid #3b82f6;
+        }
+
+        .toast.success {
+            border-left-color: #10b981;
+        }
+
+        .toast.error {
+            border-left-color: #ef4444;
+        }
+
+        .toast.info {
+            border-left-color: #3b82f6;
+        }
+
+        .toast-icon {
+            font-size: 1.125rem;
+        }
+
+        .toast-success .toast-icon {
+            color: #10b981;
+        }
+
+        .toast-error .toast-icon {
+            color: #ef4444;
+        }
+
+        .toast-content {
+            flex: 1;
+            font-size: 0.9rem;
+            font-weight: 500;
+        }
+
+        .toast-close {
+            color: #94a3b8;
+            cursor: pointer;
+            font-size: 1.25rem;
+            opacity: 0.5;
+            transition: opacity 0.2s;
+        }
+
+        .toast-close:hover {
+            opacity: 1;
+        }
+
+        @keyframes toast-in {
+            from {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+
+            to {
+                transform: translateX(0);
+                opacity: 1;
+            }
+        }
+
+        .toast.fade-out {
+            animation: toast-out 0.3s cubic-bezier(0.16, 1, 0.3, 1) forwards;
+        }
+
+        @keyframes toast-out {
+            from {
+                transform: translateX(0);
+                opacity: 1;
+            }
+
+            to {
+                transform: translateX(100%);
+                opacity: 0;
+            }
+        }
+
+        /* NEW LAYOUT STYLES */
+        body {
+            overflow: hidden;
+            /* Main scroll handled by main-panel */
+        }
+
+        .layout-wrapper {
+            display: flex;
+            height: 100vh;
+            width: 100%;
+            overflow: hidden;
+        }
+
+        .sidebar {
+            width: 300px;
+            flex-shrink: 0;
+            position: relative;
+            background: #020617;
+            border-right: 1px solid rgba(255, 255, 255, 0.05);
+            display: flex;
+            flex-direction: column;
+        }
+
+        .sidebar-bg-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background-image: url('images/sidebar-bg.png');
+            background-size: cover;
+            background-position: center;
+            opacity: 0.6;
+            z-index: 0;
+        }
+
+        .sidebar-glass-layer {
+            position: absolute;
+            top: 0;
+            left: 0;
+            width: 100%;
+            height: 100%;
+            background: linear-gradient(to bottom, rgba(15, 23, 42, 0.85), rgba(15, 23, 42, 0.5));
+            backdrop-filter: blur(8px);
+            z-index: 1;
+        }
+
+        .sidebar-content {
+            position: relative;
+            z-index: 2;
+            padding: 2rem;
+            height: 100%;
+            display: flex;
+            flex-direction: column;
+            color: #fff;
+        }
+
+        .brand-section {
+            margin-bottom: 3rem;
+        }
+
+        .project-title {
+            font-size: 1.75rem;
+            font-weight: 800;
+            line-height: 1.2;
+            background: linear-gradient(135deg, #38bdf8 0%, #818cf8 100%);
+            -webkit-background-clip: text;
+            -webkit-text-fill-color: transparent;
+            text-shadow: 0 2px 10px rgba(56, 189, 248, 0.3);
+            margin-bottom: 0.5rem;
+        }
+
+        .project-subtitle {
+            font-size: 0.75rem;
+            color: #94a3b8;
+            text-transform: uppercase;
+            letter-spacing: 0.1em;
+            font-weight: 600;
+        }
+
+        .nav-placeholder {
+            /* Visual placeholder for future nav items if needed */
+            display: flex;
+            flex-direction: column;
+            gap: 1rem;
+            opacity: 0.6;
+        }
+
+        .nav-item-mock {
+            display: flex;
+            align-items: center;
+            gap: 1rem;
+            padding: 0.75rem 1rem;
+            border-radius: 0.5rem;
+            color: #e2e8f0;
+            font-weight: 500;
+            transition: all 0.3s;
+            cursor: pointer;
+        }
+
+        .nav-item-mock:hover,
+        .nav-item-mock.active {
+            background: rgba(255, 255, 255, 0.1);
+            color: #fff;
+            box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1);
+            border: 1px solid rgba(255, 255, 255, 0.1);
+        }
+
+        .main-panel {
+            flex-grow: 1;
+            display: flex;
+            flex-direction: column;
+            height: 100vh;
+            overflow-y: auto;
+            position: relative;
+            background: #0f172a;
+        }
+
+        .top-navbar {
+            position: sticky;
+            top: 0;
+            width: 100%;
+        }
+    </style>
+</head>
+
+<body> <!-- Removed class="approver-theme", letting default styles.css + local overrides take over -->
+
+    <div class="layout-wrapper">
+        <!-- SIDEBAR OVERLAY -->
+        <div class="sidebar-overlay" onclick="toggleSidebar()"></div>
+        <!-- New Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-bg-layer"></div>
+            <div class="sidebar-glass-layer"></div>
+            <div class="sidebar-content">
+                <div class="brand-section">
+                    <div class="project-subtitle">Service Portal</div>
+                    <div class="project-title">Workflow<br>Automation</div>
+                </div>
+
+                <div class="nav-placeholder">
+                    <div class="nav-item-mock active" id="nav-dashboard"
+                        onclick="ApproverDashboard.switchView('dashboard')">
+                        <i class="fas fa-columns"></i>
+                        <span>Dashboard</span>
+                    </div>
+                    <div class="nav-item-mock" id="nav-approvals" onclick="ApproverDashboard.switchView('approvals')">
+                        <i class="fas fa-list-check"></i>
+                        <span>My Approvals</span>
+                    </div>
+                    <div class="nav-item-mock" id="nav-history" onclick="ApproverDashboard.switchView('history')">
+                        <i class="fas fa-history"></i>
+                        <span>History</span>
+                    </div>
+                    <div class="nav-item-mock" id="nav-reports" onclick="ApproverDashboard.switchView('reports')">
+                        <i class="fas fa-chart-pie"></i>
+                        <span>Reports</span>
+                    </div>
+                </div>
+            </div>
+        </aside>
+
+        <!-- Main Panel containing Navbar and Content -->
+        <div class="main-panel">
+            <nav class="top-navbar">
+                <div style="display: flex; align-items: center; gap: 1rem;">
+                    <button class="hamburger-menu" onclick="toggleSidebar()">
+                        <i class="fas fa-bars"></i>
+                    </button>
+                    <!-- Removed duplicate Title, kept User/Notifs -->
+                    <span style="font-weight: 600; font-size: 1.1rem; color: #cbd5e1;">Approver Workspace</span>
+                </div>
+
+                <div style="display: flex; align-items: center; gap: 1.5rem;">
+                    <div id="sla-global-alert"
+                        style="display: none; background: rgba(239,68,68,0.2); color: #fca5a5; padding: 0.25rem 0.75rem; border-radius: 99px; font-size: 0.85rem; font-weight: 600; border: 1px solid rgba(239,68,68,0.3);">
+                        <i class="fas fa-exclamation-triangle"></i> SLA Actions Required
+                    </div>
+
+                    <div style="position: relative; cursor: pointer;" onclick="ApproverDashboard.toggleNotifications()">
+                        <i class="fas fa-bell" style="color: #94a3b8; font-size: 1.2rem;"></i>
+                        <span id="notif-dot"
+                            style="position: absolute; top: -2px; right: -2px; width: 8px; height: 8px; background: #ef4444; border-radius: 50%; display:none;"></span>
+
+                        <!-- Notification Dropdown -->
+                        <div id="notification-dropdown"
+                            style="display: none; position: absolute; top: 100%; right: 0; width: 300px; background: #1e293b; border: 1px solid rgba(255,255,255,0.1); border-radius: 0.5rem; box-shadow: 0 4px 6px -1px rgba(0, 0, 0, 0.1); z-index: 100; margin-top: 0.5rem;">
+                            <div
+                                style="padding: 1rem; border-bottom: 1px solid rgba(255,255,255,0.05); font-weight: 600; color: #f1f5f9; display:flex; justify-content:space-between; align-items:center;">
+                                <span>Notifications</span>
+                                <span style="font-size: 0.75rem; color: #94a3b8; cursor: pointer;"
+                                    onclick="event.stopPropagation(); ApproverDashboard.markAllRead()">Mark all
+                                    read</span>
+                            </div>
+                            <div id="notification-list" style="max-height: 300px; overflow-y: auto;">
+                                <div style="padding: 1rem; color: #94a3b8; text-align: center; font-size: 0.85rem;">No
+                                    new notifications</div>
+                            </div>
+                        </div>
+                    </div>
+
+                    <div style="display: flex; align-items: center; gap: 0.75rem;">
+                        <div style="text-align: right;">
+                            <div id="user-name" style="font-weight: 600; font-size: 0.9rem; color: #f1f5f9;">Approver
+                            </div>
+                            <div id="user-dept" style="font-size: 0.75rem; color: #94a3b8;">Department</div>
+                        </div>
+                        <div class="avatar"
+                            style="width: 36px; height: 36px; background: linear-gradient(135deg, var(--secondary-color), var(--accent-color)); color: white; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-weight: 700;">
+                            AP</div>
+                        <a href="#" onclick="Auth.logout()" style="color: #ef4444; margin-left: 0.5rem;"><i
+                                class="fas fa-sign-out-alt"></i></a>
+                    </div>
+                </div>
+            </nav>
+
+            <main class="main-content" style="padding: 2rem; max-width: 1600px; width: 100%;">
+
+                <!-- VIEW: DASHBOARD (Default) -->
+                <div id="view-dashboard">
+                    <!-- KPIs -->
+                    <h3 class="section-title">My Workload</h3>
+                    <div class="stats-grid-approver">
+                        <!-- Using .kpi-card to match Admin theme -->
+                        <div class="kpi-card" style="border-left: 4px solid #3b82f6;">
+                            <div class="label">Assigned</div>
+                            <div class="value" id="kpi-assigned">0</div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #f59e0b;">
+                            <div class="label">Pending</div>
+                            <div class="value" id="kpi-pending" style="color: #fcd34d;">0</div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #10b981;">
+                            <div class="label">Approved</div>
+                            <div class="value" id="kpi-approved" style="color: #34d399;">0</div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #ef4444;">
+                            <div class="label">Rejected</div>
+                            <div class="value" id="kpi-rejected" style="color: #fca5a5;">0</div>
+                        </div>
+                        <div class="kpi-card" style="border-left: 4px solid #8b5cf6;">
+                            <div class="label">SLA At Risk</div>
+                            <div class="value" id="kpi-sla">0</div>
+                        </div>
+                    </div>
+
+                    <!-- Dashboard Request Queue -->
+                    <h3 class="section-title">Pending Requests</h3>
+                    <div class="table-container" style="margin-bottom: 2rem;">
+                        <div style="overflow-x: auto; max-height: 400px; overflow-y: auto;">
+                            <table class="approver-table">
+                                <thead>
+                                    <tr>
+                                        <th>Req ID</th>
+                                        <th>Requestor</th>
+                                        <th>Title</th>
+                                        <th>Priority</th>
+                                        <th>Created</th>
+                                        <th>SLA Rem.</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="dashboard-requests-body">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                            Loading
+                                            Requests...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+
+                    <!-- Performance / History quick view -->
+                    <div style="margin-top: 2rem; display: grid; grid-template-columns: 1fr 1fr; gap: 2rem;">
+                        <div class="card">
+                            <h4 style="font-weight: 600; margin-bottom: 1rem; color: #f1f5f9;">Approval Efficiency</h4>
+                            <div style="height: 200px; position: relative">
+                                <canvas id="efficiencyChart"></canvas>
+                            </div>
+                        </div>
+                        <div class="card">
+                            <h4 style="font-weight: 600; margin-bottom: 1rem; color: #f1f5f9;">Recent Activity</h4>
+                            <ul id="activity-list"
+                                style="list-style: none; padding: 0; font-size: 0.85rem; color: #cbd5e1;">
+                                <li style="padding: 0.5rem 0; border-bottom: 1px solid rgba(255,255,255,0.05);">
+                                    Loading...
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: LIST (Approvals / History) -->
+                <div id="view-list" style="display: none;">
+                    <h3 class="section-title" id="list-title">Assigned Requests</h3>
+                    <div class="table-container">
+                        <div style="overflow-x: auto; max-height: 600px; overflow-y: auto;">
+                            <table class="approver-table">
+                                <thead>
+                                    <tr>
+                                        <th>Req ID</th>
+                                        <th>Requestor</th>
+                                        <th>Title</th>
+                                        <th>Priority</th>
+                                        <th>Created</th>
+                                        <th>SLA Rem.</th>
+                                        <th>Status</th>
+                                        <th>Action</th>
+                                    </tr>
+                                </thead>
+                                <tbody id="requests-body">
+                                    <tr>
+                                        <td colspan="8" style="text-align: center; padding: 2rem; color: #94a3b8;">
+                                            Loading
+                                            Requests...</td>
+                                    </tr>
+                                </tbody>
+                            </table>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- VIEW: REPORTS -->
+                <div id="view-reports" style="display: none;">
+                    <h3 class="section-title">Reports & Analytics</h3>
+
+                    <div
+                        style="display: grid; grid-template-columns: repeat(auto-fit, minmax(400px, 1fr)); gap: 1.5rem; margin-bottom: 2rem;">
+
+                        <!-- Chart 1: Status Distribution -->
+                        <div class="card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem;">
+                                Request Status Breakdown</h4>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="chart-status"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 2: Priority -->
+                        <div class="card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem;">
+                                Requests by Priority</h4>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="chart-priority"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 3: SLA Compliance -->
+                        <div class="card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem;">SLA
+                                Compliance</h4>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="chart-sla"></canvas>
+                            </div>
+                        </div>
+
+                        <!-- Chart 4: Daily Volume -->
+                        <div class="card">
+                            <h4 style="font-size: 0.9rem; font-weight: 600; color: #cbd5e1; margin-bottom: 1rem;">Daily
+                                Request Volume (Last 7 Days)</h4>
+                            <div style="height: 250px; position: relative;">
+                                <canvas id="chart-volume"></canvas>
+                            </div>
+                        </div>
+
+                    </div>
+                </div>
+
+            </main>
+        </div>
+    </div>
+
+    <!-- Action Modal -->
+    <div id="action-modal" class="modal">
+        <div class="modal-content modal-content-approver"
+            style="width: 800px; max-width: 90vw; padding: 0; border-radius: 0.75rem;">
+
+            <!-- Modal Header -->
+            <div
+                style="padding: 1.5rem; border-bottom: 1px solid rgba(255,255,255,0.1); display: flex; justify-content: space-between; align-items: center;">
+                <h2 style="font-size: 1.25rem; font-weight: 700; color: #f1f5f9;" id="modal-title">Request #123</h2>
+                <button onclick="closeModal()"
+                    style="background: none; border: none; font-size: 1.5rem; color: #94a3b8; cursor: pointer;">&times;</button>
+            </div>
+
+            <!-- Modal Body -->
+            <div class="details-grid"
+                style="display: grid; grid-template-columns: 2fr 1fr; gap: 2rem; padding: 1.5rem; max-height: 60vh; overflow-y: auto;">
+                <div>
+                    <!-- Request Details -->
+                    <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; margin-bottom: 1.5rem;">
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Requestor</div>
+                            <div style="font-weight: 600; color: #f1f5f9;" id="modal-user">User Name</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Department</div>
+                            <div style="font-weight: 600; color: #f1f5f9;" id="modal-dept">IT</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Type</div>
+                            <div style="font-weight: 600; color: #f1f5f9;" id="modal-type">Access Request</div>
+                        </div>
+                        <div>
+                            <div style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase;">Priority</div>
+                            <div style="font-weight: 600; color: #f1f5f9;" id="modal-priority">HIGH</div>
+                        </div>
+                    </div>
+
+                    <div style="margin-bottom: 1.5rem;">
+                        <div
+                            style="font-size: 0.75rem; color: #94a3b8; text-transform: uppercase; margin-bottom: 0.25rem;">
+                            Description</div>
+                        <div style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.05); font-size: 0.9rem; line-height: 1.6; color: #e2e8f0;"
+                            id="modal-desc">
+                            Description text...
+                        </div>
+                    </div>
+
+                    <!-- Action Form -->
+                    <div id="modal-actions-area">
+                        <h4 style="font-size: 0.9rem; font-weight: 700; margin-bottom: 0.5rem; color: #f1f5f9;">Approver
+                            Decision</h4>
+                        <div class="form-group">
+                            <label class="form-label" style="color: #94a3b8;">Remarks / Reason (Mandatory)</label>
+                            <textarea id="action-remarks" class="form-control form-control-dark" rows="3"></textarea>
+                        </div>
+                        <div style="display: flex; gap: 1rem; margin-top: 1rem;">
+                            <button onclick="submitAction('APPROVED')" class="btn"
+                                style="background: #10b981; color: white; flex: 1; border: 1px solid rgba(255,255,255,0.1);"><i
+                                    class="fas fa-check"></i>
+                                Approve</button>
+                            <button onclick="submitAction('REJECTED')" class="btn"
+                                style="background: #ef4444; color: white; flex: 1; border: 1px solid rgba(255,255,255,0.1);"><i
+                                    class="fas fa-times"></i>
+                                Reject</button>
+                        </div>
+                    </div>
+                    <div id="modal-status-display"
+                        style="display:none; padding: 1rem; background: rgba(255,255,255,0.05); border-radius: 0.5rem; text-align: center; font-weight: 600; color: #f1f5f9;">
+                        This request is <span id="modal-status-text"></span>.
+                    </div>
+                </div>
+
+                <!-- History Side Panel -->
+                <div
+                    style="background: rgba(0,0,0,0.2); padding: 1rem; border-radius: 0.5rem; border: 1px solid rgba(255,255,255,0.05);">
+                    <h4 style="font-size: 0.85rem; font-weight: 700; color: #94a3b8; margin-bottom: 0.5rem;">Audit Trail
+                    </h4>
+                    <div id="modal-audit-list" class="audit-list">
+                        <!-- Populated by JS -->
+                    </div>
+                </div>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Custom Confirmation Modal -->
+    <div id="confirmation-modal" class="modal">
+        <div class="confirm-modal-content">
+            <div class="confirm-icon">
+                <i class="fas fa-question-circle"></i>
+            </div>
+            <div class="confirm-title" id="confirm-title">Are you sure?</div>
+            <div class="confirm-text" id="confirm-text">This action cannot be undone.</div>
+            <div class="confirm-actions">
+                <button id="confirm-cancel" class="btn"
+                    style="background: rgba(255,255,255,0.05); color: #94a3b8; border: 1px solid rgba(255,255,255,0.1);">Cancel</button>
+                <button id="confirm-proceed" class="btn" style="background: #3b82f6; color: white;">Confirm</button>
+            </div>
+        </div>
+    </div>
+    </div>
+
+    <!-- Toast Container -->
+    <div id="toast-container"></div>
+
+    <!-- Mobile Bottom Navigation -->
+    <nav class="mobile-bottom-nav">
+        <div class="nav-container">
+            <a href="#" class="nav-item active" onclick="ApproverDashboard.switchView('dashboard')">
+                <i class="fas fa-columns"></i>
+                <span>Dashboard</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('approvals')">
+                <i class="fas fa-list-check"></i>
+                <span>Approvals</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('history')">
+                <i class="fas fa-history"></i>
+                <span>History</span>
+            </a>
+            <a href="#" class="nav-item" onclick="ApproverDashboard.switchView('reports')">
+                <i class="fas fa-chart-pie"></i>
+                <span>Reports</span>
+            </a>
+        </div>
+    </nav>
+
+    <script src="js/common.js"></script>
+    <script src="js/approver-dashboard.js"></script>
+</body>
+
+</html>

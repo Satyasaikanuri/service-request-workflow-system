@@ -1,0 +1,9 @@
+User-agent: *
+Allow: /
+Disallow: /api/
+Disallow: /admin-dashboard.html
+Disallow: /manager-dashboard.html
+Disallow: /approver-dashboard.html
+Disallow: /user-dashboard.html
+
+Sitemap: https://service-request-workflow-system-1.onrender.com/sitemap.xml
