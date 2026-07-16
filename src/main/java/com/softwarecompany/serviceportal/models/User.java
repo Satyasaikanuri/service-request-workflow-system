@@ -29,10 +29,6 @@ public class User {
     @JoinColumn(name = "department_id")
     private Department department;
 
-    private boolean emailVerified = false;
-
-    private String verificationToken;
-
     // Constructors
     public User() {
     }
@@ -90,21 +86,5 @@ public class User {
 
     public void setDepartment(Department department) {
         this.department = department;
-    }
-
-    public boolean isEmailVerified() {
-        return emailVerified;
-    }
-
-    public void setEmailVerified(boolean emailVerified) {
-        this.emailVerified = emailVerified;
-    }
-
-    public String getVerificationToken() {
-        return verificationToken;
-    }
-
-    public void setVerificationToken(String verificationToken) {
-        this.verificationToken = verificationToken;
     }
 }

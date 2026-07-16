@@ -81,7 +81,6 @@ public class AdminService {
             com.softwarecompany.serviceportal.models.User user) {
         // Encode password
         user.setPassword(encoder.encode(user.getPassword()));
-        user.setEmailVerified(true);
         return userRepository.save(user);
     }
 

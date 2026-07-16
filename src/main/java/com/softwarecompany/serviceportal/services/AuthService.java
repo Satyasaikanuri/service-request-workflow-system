@@ -48,23 +48,11 @@ public class AuthService {
     @Autowired
     JwtUtils jwtUtils;
 
-    @Autowired
-    private EmailService emailService;
-
-    @Value("${app.base-url}")
-    private String baseUrl;
-
     @Value("${app.admin.secret-key}")
     private String adminSecretKey;
 
     // ================= LOGIN =================
     public ResponseEntity<?> authenticateUser(LoginRequest loginRequest) {
-        java.util.Optional<User> userOpt = userRepository.findByUsername(loginRequest.getUsername());
-        if (userOpt.isPresent() && !userOpt.get().isEmailVerified()) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Error: Email is not verified! Please check your inbox."));
-        }
-
         Authentication authentication = authenticationManager.authenticate(
                 new UsernamePasswordAuthenticationToken(
                         loginRequest.getUsername(),
@@ -222,38 +210,12 @@ public class AuthService {
 
         user.setRole(role);
 
-        // Generate email verification details
-        user.setVerificationToken(java.util.UUID.randomUUID().toString());
-        user.setEmailVerified(false);
-
         userRepository.save(user);
-
-        // Send email
-        emailService.sendVerificationEmail(user.getEmail(), user.getUsername(), user.getVerificationToken());
 
         return ResponseEntity.ok(
                 new MessageResponse(
-                        "User registered successfully! Please check your email to verify your account."
+                        "User registered successfully!"
                 )
         );
-    }
-
-    public ResponseEntity<?> verifyUser(String token) {
-        java.util.Optional<User> userOpt = userRepository.findByVerificationToken(token);
-        if (userOpt.isEmpty()) {
-            return ResponseEntity.badRequest()
-                    .body(new MessageResponse("Error: Invalid verification token!"));
-        }
-
-        User user = userOpt.get();
-        if (user.isEmailVerified()) {
-            return ResponseEntity.ok(new MessageResponse("Email is already verified."));
-        }
-
-        user.setEmailVerified(true);
-        user.setVerificationToken(null);
-        userRepository.save(user);
-
-        return ResponseEntity.ok(new MessageResponse("Email verified successfully! You can now log in."));
     }
 }
